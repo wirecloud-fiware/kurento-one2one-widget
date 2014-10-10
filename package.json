@@ -1,0 +1,25 @@
+{
+  "name": "kurento-one2one-widget",
+  "version": "0.0.1",
+  "description": "A simple widget for creating a one-to-one call, using webrtc and kurento services.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wirecloud-fiware/kurento-one2one-widget.git"
+  },
+  "keywords": [
+    "widget",
+    "one2one",
+    "video",
+    "camera",
+    "call",
+    "kurento",
+    "webrtc",
+    "wirecloud"
+  ],
+  "author": "CoNWeT Lab., Universidad Politecnica de Madrid",
+  "license": "Apache (version 2.0)",
+  "bugs": {
+    "url": "https://github.com/wirecloud-fiware/kurento-one2one-widget/issues"
+  },
+  "homepage": "https://github.com/wirecloud-fiware/kurento-one2one-widget"
+}

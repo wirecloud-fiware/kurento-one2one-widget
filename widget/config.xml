@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<widget xmlns="http://wirecloud.conwet.fi.upm.es/ns/macdescription/1" vendor="CoNWeT" name="kurento-one2one" version="0.0.1">
+    <details>
+        <title>Kurento - One2One</title>
+        <authors>Jaime Pajuelo &lt;jpajuelo@conwet.com&gt;</authors>
+        <email>jpajuelo@conwet.com</email>
+        <image>images/webrtc.png</image>
+        <smartphoneimage>images/webrtc.png</smartphoneimage>
+        <description>A simple widget for creating a one-to-one call, using webrtc and kurento services.</description>
+        <doc>https://github.com/wirecloud-fiware/kurento-one2one-widget</doc>
+    </details>
+    <wiring/>
+    <contents src="index.html"/>
+    <rendering width="6" height="10"/>
+</widget>
