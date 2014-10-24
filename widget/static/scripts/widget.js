@@ -79,10 +79,9 @@ window.onload = function() {
     videoInput = document.getElementById('videoInput');
     videoOutput = document.getElementById('videoOutput');
 
-    $('#host').click(function (event) {
+    ws.onopen = function () {
         register();
-        return false;
-    });
+    }
 
     $('#form-join').submit(function (event) {
         call();
