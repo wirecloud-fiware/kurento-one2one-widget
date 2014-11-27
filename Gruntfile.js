@@ -20,34 +20,52 @@ module.exports = function(grunt) {
 
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
-        compress: {
-            'default': {
-                options: {
-                    archive: '<%= pkg.name %>-v<%= pkg.version %>.zip'
-                },
-                files: [
-                    {
-                        expand: true,
-                        cwd: 'widget',
-                        dest: '.',
-                        src: [
-                            'config.xml',
-                            'index.html',
-                            'static/**',
-                            'bower_components/bootstrap/dist/**/*',
-                            'bower_components/fontawesome/css/*',
-                            'bower_components/fontawesome/fonts/*',
-                            'bower_components/jquery/dist/*',
-                            'bower_components/kurento-utils/js/*'
-                        ]
-                    }
-                ]
-            }
-        }
+
+    compress: {
+      widget: {
+        options: {
+          mode: 'zip',
+          archive: 'build/<%= pkg.vendor %>_<%= pkg.name %>_<%= pkg.version %>-dev.wgt'
+        },
+        files: [
+          {expand: true, src: ['lib/**/*', 'config.xml', 'index.html', 'js/**/*', 'css/**/*', 'images/**/*'], cwd: 'src'},
+          {expand: true, src: ['css/bootstrap.min.css', 'js/bootstrap.min.js'], dest:'lib', cwd: 'src/bower_components/bootstrap/dist'},
+          {expand: true, src: ['css/font-awesome.min.css'], dest:'lib', cwd: 'src/bower_components/fontawesome'},
+          {expand: true, src: ['fonts/**/*'], dest:'lib', cwd: 'src/bower_components/fontawesome'},
+          {expand: true, src: ['jquery.min.js'], dest:'lib/js', cwd: 'src/bower_components/jquery/dist'},
+          {expand: true, src: ['js/kurento-utils.min.js'], dest:'lib', cwd: 'src/bower_components/kurento-utils'}
+        ]
+      }
+    },
+
+    clean: ['build'],
+
+    replace: {
+      version: {
+        src: ['src/config.xml'],
+        overwrite: true,
+        replacements: [{
+          from: /version=\"[0-9]+\.[0-9]+\.[0-9]+(-dev)?\"/g,
+          to: 'version="<%= pkg.version %>"'
+        }]
+      }
+    },
+
+    jshint: {
+      all: ['src/js/**/*', 'src/test/**/*', 'Gruntfile.js', '!src/test/fixtures/']
+    },
+
+
     });
 
     grunt.loadNpmTasks('grunt-contrib-compress');
+    grunt.loadNpmTasks('grunt-contrib-jshint');
+    grunt.loadNpmTasks('grunt-contrib-clean');
+    grunt.loadNpmTasks('grunt-text-replace');
 
-    grunt.registerTask('default', ['compress:default']);
+    grunt.registerTask('zip', 'compress:widget');
+    grunt.registerTask('version', ['replace:version']);
+
+    grunt.registerTask('default', ['version', 'zip']);
 
 };
