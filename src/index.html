@@ -7,22 +7,22 @@
     <title>Kurento - One2one</title>
 
     <link rel="shortcut icon" href="./img/kurento.png" type="image/png">
-    <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="bower_components/fontawesome/css/font-awesome.min.css">
-    <link rel="stylesheet" href="static/styles/widget.css">
+    <link rel="stylesheet" href="lib/css/bootstrap.min.css">
+    <link rel="stylesheet" href="lib/css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/widget.css">
 
-    <script src="bower_components/jquery/dist/jquery.min.js"></script>
-    <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
-    <script src="https://rawgit.com/GoogleChrome/webrtc/master/samples/web/js/adapter.js"></script>
-    <script src="bower_components/kurento-utils/js/kurento-utils.min.js"></script>
-    <script src="static/scripts/widget.js"></script>
+    <script src="lib/js/jquery.min.js"></script>
+    <script src="lib/js/bootstrap.min.js"></script>
+    <!--<script src="https://rawgit.com/GoogleChrome/webrtc/master/samples/web/js/adapter.js"></script>-->
+    <script src="lib/js/kurento-utils.min.js"></script>
+    <script src="js/widget.js"></script>
   </head>
   <body>
     <div class="navbar navbar-default navbar-fixed-top">
       <div class="container-fluid">
         <div class="navbar-header">
           <a class="navbar-brand" href="http://www.kurento.org" target="_blank">
-            <img src="static/images/kurento.png" />
+            <img src="images/kurento.png" />
           </a>
         </div><!-- ./navbar-header -->
         <form id="form-join" class="navbar-form form-inline navbar-left">
@@ -39,9 +39,9 @@
         <button id="stop" type="button" class="btn btn-danger"><span class="fa fa-stop"></span></button>  
       </div><!-- /#video-camera-options -->
       <div id="video-camera-input" style="display: none;">
-        <video id="videoInput" autoplay poster="static/images/webrtc.png"></video>
+        <video id="videoInput" autoplay poster="images/webrtc.png"></video>
       </div><!-- /#video-camera-input -->
-      <video id="videoOutput" autoplay poster="static/images/webrtc.png"></video>
+      <video id="videoOutput" autoplay poster="images/webrtc.png"></video>
     </div><!-- /.video-camera-output -->
   </body>
 </html>
