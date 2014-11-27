@@ -1,6 +1,7 @@
 {
   "name": "kurento-one2one-widget",
-  "version": "0.0.1",
+  "version": "0.0.5",
+  "vendor": "CoNWeT",
   "description": "A simple widget for creating a one-to-one call, using webrtc and kurento services.",
   "repository": {
     "type": "git",
@@ -24,6 +25,9 @@
   "homepage": "https://github.com/wirecloud-fiware/kurento-one2one-widget",
   "devDependencies": {
     "grunt": "^0.4.5",
-    "grunt-contrib-compress": "^0.12.0"
+    "grunt-contrib-clean": "^0.6.0",
+    "grunt-contrib-compress": "^0.12.0",
+    "grunt-contrib-jshint": "^0.10.0",
+    "grunt-text-replace": "^0.3.12"
   }
 }
