@@ -1,15 +1,43 @@
 WireCloud Widget - Kurento One2One
 ==================================
 
-> A simple widget for creating a one-to-one call, using webrtc and kurento services.
+A simple widget for creating a one-to-one call, using webrtc and Kurento
+services.
 
 Table of Contents
 -----------------
 
-- [License](#license)
+- [Build](#build)
+- [License](#copyright-and-license)
 
-License
--------
+Build
+-----
+
+Be sure to have installed [Node.js](http://node.js) and
+[Bower](http://bower.io) in your system:
+
+```bash
+curl -sL https://deb.nodesource.com/setup | sudo bash -
+sudo apt-get install -y nodejs
+sudo npm install -g bower
+```
+
+Install other npm dependencies by running:
+
+```bash
+npm install
+```
+
+And build the widget using grunt:
+
+```bash
+grunt
+```
+
+If everything goes well, you will find a wgt file in the `dist` folder.
+
+Copyright and license
+---------------------
 
 Copyright 2014 CoNWeT Lab., Universidad Politecnica de Madrid
 
