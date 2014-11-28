@@ -14,50 +14,57 @@
  *   limitations under the License.
  */
 
-module.exports = function(grunt) {
+var bower = require('bower');
+
+module.exports = function (grunt) {
 
     'use strict';
 
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
 
-    compress: {
-      widget: {
-        options: {
-          mode: 'zip',
-          archive: 'build/<%= pkg.vendor %>_<%= pkg.name %>_<%= pkg.version %>-dev.wgt'
+        bower: {
+            install: {
+                options: {
+                    layout: function(type, component, source) {
+                        return type;
+                    },
+                    targetDir: './src/lib'
+                }
+            }
         },
-        files: [
-          {expand: true, src: ['lib/**/*', 'config.xml', 'index.html', 'js/**/*', 'css/**/*', 'images/**/*'], cwd: 'src'},
-          {expand: true, src: ['css/bootstrap.min.css', 'js/bootstrap.min.js'], dest:'lib', cwd: 'src/bower_components/bootstrap/dist'},
-          {expand: true, src: ['css/font-awesome.min.css'], dest:'lib', cwd: 'src/bower_components/fontawesome'},
-          {expand: true, src: ['fonts/**/*'], dest:'lib', cwd: 'src/bower_components/fontawesome'},
-          {expand: true, src: ['jquery.min.js'], dest:'lib/js', cwd: 'src/bower_components/jquery/dist'},
-          {expand: true, src: ['js/kurento-utils.min.js'], dest:'lib', cwd: 'src/bower_components/kurento-utils'}
-        ]
-      }
-    },
 
-    clean: ['build'],
+        compress: {
+            widget: {
+                options: {
+                    mode: 'zip',
+                    archive: 'build/<%= pkg.vendor %>_<%= pkg.name %>_<%= pkg.version %>-dev.wgt'
+                },
+                files: [
+                    {expand: true, src: ['lib/**/*', 'config.xml', 'index.html', 'js/**/*', 'css/**/*', 'images/**/*'], cwd: 'src'}
+                ]
+            }
+        },
 
-    replace: {
-      version: {
-        src: ['src/config.xml'],
-        overwrite: true,
-        replacements: [{
-          from: /version=\"[0-9]+\.[0-9]+\.[0-9]+(-dev)?\"/g,
-          to: 'version="<%= pkg.version %>"'
-        }]
-      }
-    },
+        clean: ['build'],
 
-    jshint: {
-      all: ['src/js/**/*', 'src/test/**/*', 'Gruntfile.js', '!src/test/fixtures/']
-    },
+        replace: {
+            version: {
+                src: ['src/config.xml'],
+                overwrite: true,
+                replacements: [{
+                    from: /version=\"[0-9]+\.[0-9]+\.[0-9]+(-dev)?\"/g,
+                    to: 'version="<%= pkg.version %>"'
+                }]
+            }
+        },
 
-
+        jshint: {
+            all: ['src/js/**/*', 'src/test/**/*', 'Gruntfile.js', '!src/test/fixtures/']
+        },
     });
 
+    grunt.loadNpmTasks('grunt-bower-task');
     grunt.loadNpmTasks('grunt-contrib-compress');
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-clean');
@@ -65,7 +72,6 @@ module.exports = function(grunt) {
 
     grunt.registerTask('zip', 'compress:widget');
     grunt.registerTask('version', ['replace:version']);
-
-    grunt.registerTask('default', ['version', 'zip']);
+    grunt.registerTask('default', ['bower:install', 'version', 'zip']);
 
 };
