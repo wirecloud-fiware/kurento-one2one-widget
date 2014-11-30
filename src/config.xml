@@ -9,7 +9,9 @@
         <description>A simple widget for creating a one-to-one call, using webrtc and kurento services.</description>
         <doc>https://github.com/wirecloud-fiware/kurento-one2one-widget</doc>
     </details>
-    <wiring/>
+    <preferences>
+        <preference name="server-url" label="one2one server" description="URL of the one2one server to use" type="text" default="ws://130.206.81.33:8080/call" />
+    </preferences>
     <contents src="index.html"/>
     <rendering width="6" height="10"/>
 </widget>

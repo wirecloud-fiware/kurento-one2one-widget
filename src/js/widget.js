@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-/*jshint jquery:true*/
-/*global kurentoUtils, MashupPlatform*/
+/*global $, kurentoUtils, MashupPlatform*/
 
 (function () {
 
     "use strict";
 
-    var ws = new WebSocket('ws://130.206.81.33:8080/one2one');
+    var ws = null;
     var webRtcPeer;
 
     var DEBUG = true;
@@ -77,16 +76,47 @@
         callState = newState;
     };
 
+    var reconnect = function reconnect() {
+        if (ws != null) {
+            ws.close();
+        }
+
+        ws = new WebSocket(MashupPlatform.prefs.get('server-url'));
+        ws.onopen = function () {
+            register();
+        };
+        ws.onmessage = function (message) {
+            var parsedMessage = JSON.parse(message.data);
+            console.info('Received message: ' + message.data);
+
+            switch (parsedMessage.id) {
+            case 'registerResponse':
+                resgisterResponse(parsedMessage);
+                break;
+            case 'callResponse':
+                callResponse(parsedMessage);
+                break;
+            case 'incomingCall':
+                incomingCall(parsedMessage);
+                break;
+            case 'startCommunication':
+                startCommunication(parsedMessage);
+                break;
+            case 'stopCommunication':
+                console.info("Communication ended by remote peer");
+                stop(true);
+                break;
+            default:
+                console.error('Unrecognized message', parsedMessage);
+            }
+        };
+    };
 
     var videoInput, videoOutput;
     window.onload = function () {
         setRegisterState(NOT_REGISTERED);
         videoInput = document.getElementById('videoInput');
         videoOutput = document.getElementById('videoOutput');
-
-        ws.onopen = function () {
-            register();
-        };
 
         $('#form-join').submit(function (event) {
             call();
@@ -114,40 +144,16 @@
                 $('#video-camera-input').hide();
             }
         });
+
+        reconnect();
     };
 
     window.onbeforeunload = function () {
         ws.close();
     };
 
-    ws.onmessage = function (message) {
-        var parsedMessage = JSON.parse(message.data);
-        console.info('Received message: ' + message.data);
-
-        switch (parsedMessage.id) {
-        case 'registerResponse':
-            resgisterResponse(parsedMessage);
-            break;
-        case 'callResponse':
-            callResponse(parsedMessage);
-            break;
-        case 'incomingCall':
-            incomingCall(parsedMessage);
-            break;
-        case 'startCommunication':
-            startCommunication(parsedMessage);
-            break;
-        case 'stopCommunication':
-            console.info("Communication ended by remote peer");
-            stop(true);
-            break;
-        default:
-            console.error('Unrecognized message', parsedMessage);
-        }
-    };
-
     var resgisterResponse = function resgisterResponse(message) {
-        if (message.response == 'accepted') {
+        if (message.response === 'accepted') {
             setRegisterState(REGISTERED);
         } else {
             setRegisterState(NOT_REGISTERED);
@@ -227,7 +233,7 @@
     var call = function call() {
         var peerName = document.getElementById('name').value;
 
-        if(!peerName.length){
+        if (!peerName.length) {
             window.alert("You must specify the peer name");
             return;
         }
@@ -290,5 +296,9 @@
             arguments[i].style.background = '';
         }
     };
+
+    MashupPlatform.prefs.registerCallback(function () {
+        reconnect();
+    });
 
 })();
