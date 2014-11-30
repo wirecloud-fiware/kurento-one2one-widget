@@ -285,14 +285,14 @@
 
     var showSpinner = function showSpinner() {
         for (var i = 0; i < arguments.length; i++) {
-            arguments[i].poster = '/static/images/transparent-1px.png';
-            arguments[i].style.background = 'center transparent url("/static/images/spinner.gif") no-repeat';
+            arguments[i].poster = 'images/transparent-1px.png';
+            arguments[i].style.background = 'center transparent url("images/spinner.gif") no-repeat';
         }
     };
 
     var hideSpinner = function hideSpinner() {
         for (var i = 0; i < arguments.length; i++) {
-            arguments[i].poster = '/static/images/webrtc.png';
+            arguments[i].poster = 'images/webrtc.png';
             arguments[i].style.background = '';
         }
     };
