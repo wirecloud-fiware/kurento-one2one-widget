@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<widget xmlns="http://wirecloud.conwet.fi.upm.es/ns/macdescription/1" vendor="CoNWeT" name="kurento-one2one" version="0.0.10">
+<widget xmlns="http://wirecloud.conwet.fi.upm.es/ns/macdescription/1" vendor="CoNWeT" name="kurento-one2one" version="1.0.1">
     <details>
         <title>Kurento - One2One</title>
         <authors>Jaime Pajuelo &lt;jpajuelo@conwet.com&gt;</authors>
@@ -14,7 +14,7 @@
         <preference name="standalone" label="Standalone" description="If checked lets the user choose the user to call" type="boolean" default="true" />
     </preferences>
     <wiring>
-        <inputendpoint name="call" type="text" label="Call/Stop" description="Sends instruction to call a user or stop the call in progress" friendcode="kurento-command" />
+        <inputendpoint name="kurento-command" type="text" label="Call/Stop" description="Sends instruction to call a user or stop the call in progress" friendcode="kurento-command" />
     </wiring>
     <contents src="index.html"/>
     <rendering width="6" height="10"/>

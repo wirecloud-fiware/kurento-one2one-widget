@@ -1,6 +1,6 @@
 {
   "name": "kurento-one2one-widget",
-  "version": "0.0.10",
+  "version": "1.0.1",
   "vendor": "CoNWeT",
   "description": "A simple widget for creating a one-to-one call, using webrtc and kurento services.",
   "repository": {

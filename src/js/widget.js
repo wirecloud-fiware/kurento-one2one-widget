@@ -21,8 +21,7 @@
     "use strict";
 
     var ws = null;
-    var webRtcPeer;
-    var peerName;
+    var webRtcPeer = null;
 
     var DEBUG = true;
 
@@ -106,7 +105,7 @@
                 break;
             case 'stopCommunication':
                 console.info("Communication ended by remote peer");
-                stop(true);
+                dispose();
                 break;
             default:
                 console.error('Unrecognized message', parsedMessage);
@@ -121,7 +120,7 @@
         videoOutput = document.getElementById('videoOutput');
 
         $('#form-join').submit(function (event) {
-            call();
+            call(document.getElementById('name').value);
             return false;
         });
 
@@ -170,7 +169,7 @@
             console.info('Call not accepted by peer. Closing call');
             var errorMessage = message.message ? message.message : 'Unknown reason for call rejection.';
             console.log(errorMessage);
-            stop(true);
+            dispose();
         } else {
             setCallState(IN_CALL);
             webRtcPeer.processSdpAnswer(message.sdpAnswer);
@@ -220,7 +219,7 @@
                 message : 'user declined'
             };
             sendMessage(response);
-            stop(true);
+            dispose();
         }
     };
 
@@ -233,20 +232,9 @@
         sendMessage({id: 'register', name: host}, "Create room for " + host);
     };
 
-    var getPeerName = function getPeerName() {
-        var standalone = MashupPlatform.prefs.get('standalone');
+    var call = function call(peerName) {
 
-        if (standalone) {
-            peerName = document.getElementById('name').value;
-        }
-
-        return peerName;
-    };
-
-    var call = function call() {
-        var peerName = getPeerName();
-
-        if (!peerName.length) {
+        if (!peerName || !peerName.length) {
             window.alert("You must specify the peer name");
             return;
         }
@@ -270,17 +258,19 @@
         });
     };
 
-    var stop = function stop(message) {
+    var stop = function stop() {
+        var message = {
+            id : 'stop'
+        };
+        sendMessage(message, "");
+        dispose();
+    };
+
+    var dispose = function dispose() {
         setCallState(NO_CALL);
         if (webRtcPeer) {
             webRtcPeer.dispose();
-
-            if (!message) {
-                message = {
-                    id : 'stop'
-                };
-                sendMessage(message, "");
-            }
+            webRtcPeer = null;
         }
         videoInput.src = '';
         videoOutput.src = '';
@@ -327,12 +317,12 @@
         reconnect();
     });
 
-    MashupPlatform.wiring.registerCallback('call', function (data) {
+    MashupPlatform.wiring.registerCallback('kurento-command', function (data) {
         var response = JSON.parse(data);
         if (response.action === 'call') {
-            call();
+            call(response.name);
         } else {
-            stop(true);
+            stop();
         }
     });
 
