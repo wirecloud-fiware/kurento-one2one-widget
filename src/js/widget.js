@@ -22,6 +22,7 @@
 
     var ws = null;
     var webRtcPeer;
+    var peerName;
 
     var DEBUG = true;
 
@@ -77,6 +78,7 @@
     };
 
     var reconnect = function reconnect() {
+
         if (ws != null) {
             ws.close();
         }
@@ -146,6 +148,7 @@
         });
 
         reconnect();
+        changeStandalone();
     };
 
     window.onbeforeunload = function () {
@@ -230,8 +233,18 @@
         sendMessage({id: 'register', name: host}, "Create room for " + host);
     };
 
+    var getPeerName = function getPeerName() {
+        var standalone = MashupPlatform.prefs.get('standalone');
+
+        if (standalone) {
+            peerName = document.getElementById('name').value;
+        }
+
+        return peerName;
+    };
+
     var call = function call() {
-        var peerName = document.getElementById('name').value;
+        var peerName = getPeerName();
 
         if (!peerName.length) {
             window.alert("You must specify the peer name");
@@ -297,8 +310,30 @@
         }
     };
 
+    var changeStandalone = function changeStandalone() {
+        var standalone = MashupPlatform.prefs.get('standalone');
+
+        if (!standalone) {
+            $('#name').hide();
+            $('#join').hide();
+        } else {
+            $('#name').show();
+            $('#join').show();
+        }
+    };
+
     MashupPlatform.prefs.registerCallback(function () {
+        changeStandalone();
         reconnect();
+    });
+
+    MashupPlatform.wiring.registerCallback('call', function (data) {
+        var response = JSON.parse(data);
+        if (response.action === 'call') {
+            call();
+        } else {
+            stop(true);
+        }
     });
 
 })();
