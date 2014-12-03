@@ -38,7 +38,6 @@
                 $('#host').attr('disabled', false);
                 $('#join').attr('disabled', true);
                 $('#show').attr('disabled', true);
-                $('#stop').attr('disabled', true);
                 break;
             case REGISTERING:
                 $('#host').attr('disabled', true);
@@ -62,13 +61,17 @@
         switch (newState) {
             case NO_CALL:
                 $('#join').attr('disabled', false);
+                $('#stop').attr('disabled', true);
+                pushEvent('call-status', 'NO_CALL');
                 break;
             case CALLING:
                 $('#join').attr('disabled', true);
+                pushEvent('call-status', 'CALLING');
                 break;
             case IN_CALL:
                 $('#stop').attr('disabled', false);
                 $('#show').attr('disabled', false);
+                pushEvent('call-status', 'IN_CALL');
                 break;
             default:
                 return;

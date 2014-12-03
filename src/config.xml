@@ -15,6 +15,7 @@
     </preferences>
     <wiring>
         <inputendpoint name="kurento-command" type="text" label="Call/Stop" description="Sends instruction to call a user or stop the call in progress" friendcode="kurento-command" />
+        <outputendpoint name="call-status" type="text" label="Call status" description="Sends the call status" friendcode="call-status" />
     </wiring>
     <contents src="index.html"/>
     <rendering width="6" height="10"/>
