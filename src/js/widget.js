@@ -30,6 +30,7 @@
     var REGISTERED     = 2;
 
     var host = null;
+    var callee = null;
 
     var registerState = null;
     var setRegisterState = function setRegisterState(newState) {
@@ -244,9 +245,11 @@
 
         if (callState !== NO_CALL) {
             window.alert("You are already in a call");
+            return;
         }
 
-        setCallState(CALLING);    
+        setCallState(CALLING);
+        callee = peerName;
         showSpinner(videoInput, videoOutput);
 
         kurentoUtils.WebRtcPeer.startSendRecv(videoInput, videoOutput, function(offerSdp, wp) {
@@ -265,7 +268,15 @@
         });
     };
 
-    var stop = function stop() {
+    var stop = function stop(peerName) {
+
+
+        if (callee !== peerName) {
+            window.alert("The call you are trying to stop is not the one in progress");
+            return;
+
+        }
+
         var message = {
             id : 'stop'
         };
@@ -275,6 +286,7 @@
 
     var dispose = function dispose() {
         setCallState(NO_CALL);
+        callee = null;
         if (webRtcPeer) {
             webRtcPeer.dispose();
             webRtcPeer = null;
@@ -329,7 +341,7 @@
         if (response.action === 'call') {
             call(response.name);
         } else {
-            stop();
+            stop(response.name);
         }
     });
 
