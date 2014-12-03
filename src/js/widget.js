@@ -242,6 +242,10 @@
             return;
         }
 
+        if (callState !== NO_CALL) {
+            window.alert("You are already in a call");
+        }
+
         setCallState(CALLING);    
         showSpinner(videoInput, videoOutput);
 
