@@ -17,6 +17,28 @@
     <script src="js/widget.js"></script>
   </head>
   <body>
+
+<div id="incoming-modal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="myModalLabel">Incoming call</h4>
+      </div>
+      <div class="modal-body">
+        User <strong id="incoming-user"></strong> calling...
+      </div>
+      <div class="modal-footer" style="text-align: center;">
+        <button id="accept-call" type="button" class="btn btn-success">
+          <span class="fa fa-phone"></span> Answer
+        </button>
+        <button type="button" class="btn btn-danger" data-dismiss="modal">
+          <span class="fa fa-tty"></span> Decline
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
     <div id="container" class="video-camera-output">
       <div id="video-camera-options">
         <img src="images/kurento.png" />

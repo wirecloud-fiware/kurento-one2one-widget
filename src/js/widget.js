@@ -186,7 +186,7 @@
     };
 
     var incomingCall = function incomingCall(message) {
-        var response;
+        var response, acceptedCall = false;
 
         // Don't disturb the user if is busy
         if (callState != NO_CALL) {
@@ -201,30 +201,38 @@
         }
 
         setCallState(CALLING);
-        if (confirm('User ' + message.from + ' is calling you. Do you accept the call?')) {
-            showSpinner(videoInput, videoOutput);
-            webRtcPeer = kurentoUtils.WebRtcPeer.startSendRecv(videoInput,
-                    videoOutput, function(sdp, wp) {
-                        var response = {
-                            id: 'incomingCallResponse',
-                            from: message.from,
-                            callResponse: 'accept',
-                            sdpOffer: sdp
-                        };
-                        sendMessage(response, "Acepting call...");
-                    }, function(error){
-                        setCallState(NO_CALL);
-                    });
-        } else {
-            response = {
-                id : 'incomingCallResponse',
-                from : message.from,
-                callResponse : 'reject',
-                message : 'user declined'
-            };
-            sendMessage(response);
-            dispose();
-        }
+        $('#incoming-user').text(message.from);
+        $('#incoming-modal').modal('show');
+        $('#accept-call').on('click', function (event) {
+            acceptedCall = true;
+            $('#incoming-modal').modal('hide');
+        });
+        $('#incoming-modal').on('hidden.bs.modal', function (event) {
+            if (acceptedCall) {
+                showSpinner(videoInput, videoOutput);
+                webRtcPeer = kurentoUtils.WebRtcPeer.startSendRecv(videoInput,
+                videoOutput, function(sdp, wp) {
+                    var response = {
+                        id: 'incomingCallResponse',
+                        from: message.from,
+                        callResponse: 'accept',
+                        sdpOffer: sdp
+                    };
+                    sendMessage(response, "Acepting call...");
+                }, function(error){
+                    setCallState(NO_CALL);
+                });
+            } else {
+                response = {
+                    id : 'incomingCallResponse',
+                    from : message.from,
+                    callResponse : 'reject',
+                    message : 'user declined'
+                };
+                sendMessage(response);
+                dispose();
+            }
+        });
     };
 
     var register = function register() {

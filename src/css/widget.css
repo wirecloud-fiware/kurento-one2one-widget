@@ -46,6 +46,8 @@ img {
     margin-left: 5px;
 }
 
+
+
 .video-camera-output {
     position: relative;
     margin: 0 auto;
@@ -62,9 +64,33 @@ img {
     background-color: rgba(0, 0, 0, 0.8);
     border-radius: 4px 4px 0px 0px;
 }
+.video-camera-output > #video-camera-options button {
+    margin-left: 8px;
+}
 .video-camera-output > video {
     width: 570px;
     height: 480px;
+}
+
+#video-camera-input {
+    right: 0px;
+    position: absolute;
+    z-index: 10;
+    margin: 5px;
+    width: 240px;
+}
+#video-camera-input > video {
+    width: 240px;
+    height: 180px;
+}
+
+#incoming-modal .modal-header {
+    padding: 8px 10px 5px;
+    font-weight: bold;
+}
+#incoming-modal .modal-footer {
+    border-top: transparent;
+    padding-top: 5px;
 }
 
 @media(max-width: 570px) {
@@ -83,26 +109,20 @@ img {
     }
     .video-camera-output > video {
         width: 352px;
-        height: 240px;
+        height: 230px;
     }
     img {
         margin-left: 0px;
     }
-    #name {
-        margin-left: 0px;
+    .video-camera-output > #video-camera-options button {
+        margin-left: 4px;
     }
-    #show {
-        margin-left: 0px;
+
+    #video-camera-input {
+        width: 120px;
     }
-}
-#video-camera-input {
-    right: 0px;
-    position: absolute;
-    z-index: 10;
-    margin: 10px;
-    width: 240px;
-}
-#video-camera-input > video {
-    width: 240px;
-    height: 180px;
+    #video-camera-input > video {
+        width: 120px;
+        height: 90px;
+    }
 }
