@@ -63,16 +63,16 @@
             case NO_CALL:
                 $('#join').attr('disabled', false);
                 $('#stop').attr('disabled', true);
-                pushEvent('call-status', 'NO_CALL');
+                MashupPlatform.wiring.pushEvent('call-status', 'NO_CALL');
                 break;
             case CALLING:
                 $('#join').attr('disabled', true);
-                pushEvent('call-status', 'CALLING');
+                MashupPlatform.wiring.pushEvent('call-status', 'CALLING');
                 break;
             case IN_CALL:
                 $('#stop').attr('disabled', false);
                 $('#show').attr('disabled', false);
-                pushEvent('call-status', 'IN_CALL');
+                MashupPlatform.wiring.pushEvent('call-status', 'IN_CALL');
                 break;
             default:
                 return;
@@ -129,7 +129,7 @@
         });
 
         $('#stop').click(function (event) {
-            stop();
+            stop(callee);
             return false;
         });
 
