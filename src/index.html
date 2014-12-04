@@ -17,27 +17,15 @@
     <script src="js/widget.js"></script>
   </head>
   <body>
-    <div class="navbar navbar-default navbar-fixed-top">
-      <div class="container-fluid">
-        <div class="navbar-header">
-          <a class="navbar-brand" href="http://www.kurento.org" target="_blank">
-            <img src="images/kurento.png" />
-          </a>
-        </div><!-- ./navbar-header -->
-        <form id="form-join" class="navbar-form form-inline navbar-left">
-          <div class="form-group">
-            <input id="name" type="text" class="form-control" placeholder="Username/Workspace">
-          </div>
-          <button id="join" type="submit" class="btn btn-success"><span class="fa fa-phone"></span></button>
-        </form>
-        <form id="form-stop" class="navbar-form form-inline navbar-right">
-          <button id="stop" type="button" class="btn btn-danger"><span class="fa fa-stop"></span></button> 
-        </form>
-      </div><!-- /.container-fluid -->
-    </div><!-- /.navbar -->
     <div id="container" class="video-camera-output">
       <div id="video-camera-options">
-        <button id="show" type="button" class="btn btn-default"><span class="fa fa-eye"></span></button> 
+        <img src="images/kurento.png" />
+        <input id="name" type="text" class="form-control" placeholder="Username/Workspace">
+        <button id="join" type="button" class="btn btn-success"><span class="fa fa-phone"></span></button>
+        <button id="stop" type="button" class="btn btn-danger"><span class="fa fa-square"></span></button>
+        <button id="show" type="button" class="btn btn-default">
+          <span class="fa fa-eye"></span>
+        </button>
       </div><!-- /#video-camera-options -->
       <div id="video-camera-input" style="display: none;">
         <video id="videoInput" autoplay poster="images/webrtc.png"></video>

@@ -123,7 +123,7 @@
         videoInput = document.getElementById('videoInput');
         videoOutput = document.getElementById('videoOutput');
 
-        $('#form-join').submit(function (event) {
+        $('#join').click(function (event) {
             call(document.getElementById('name').value);
             return false;
         });
