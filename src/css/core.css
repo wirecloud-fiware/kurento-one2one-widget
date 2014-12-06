@@ -1,0 +1,88 @@
+/*
+ * Copyright (c) 2014 CoNWeT Lab., Universidad Politécnica de Madrid
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+.camera {
+    border: solid 1px #ddd;
+    border-radius: 4px;
+}
+
+.camera-sm {
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    margin: 5px;
+    width: 120px;
+    height: 80px;
+}
+
+.camera-lg {
+    width: 320px;
+    height: 240px;
+}
+
+.bottom-menu {
+    position: absolute;
+    padding: 5px 10px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    background-color: rgba(100, 100, 100, 0.4);
+    border-radius: 0px 0px 4px 4px;
+    text-align: center;
+}
+
+.btn-circle {
+    border-radius: 18px;
+    min-width: 34px;
+    min-height: 34px;
+    padding: 0px;
+    margin: 0px 2px;
+}
+
+.btn-lg {
+    border-radius: 20px;
+    min-width: 40px;
+    min-height: 40px;
+}
+
+.modal .modal-header {
+    padding: 6px 8px;
+    font-size: 16px;
+}
+.modal .modal-body {
+    padding: 14px 8px 6px;
+    text-align: center;
+}
+.modal .modal-footer {
+    padding: 8px 8px;
+    border-top: transparent;
+}
+
+.alert {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    text-align: center;
+    padding: 2px 0px;
+    font-size: 13px;
+}
+
+#camera-container {
+    position: relative;
+    width: 320px;
+    margin: 2px auto;
+}
