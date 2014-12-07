@@ -68,14 +68,14 @@ var Widget = (function () {
 
     this.serverURL = 'ws://130.206.81.33:8080/call';
 
-    var flag = true;
+    var flag = false;
 
     if (flag) {
-      this.username = 'braulio/kurento';
-      this.peername = 'jpajuelo/kurento';
+      this.username = 'b/kurento';
+      this.peername = 'j/kurento';
     } else {
-      this.peername = 'braulio/kurento';
-      this.username = 'jpajuelo/kurento';
+      this.peername = 'b/kurento';
+      this.username = 'j/kurento';
     }
 
     this.reconnect();
@@ -93,9 +93,9 @@ var Widget = (function () {
         });
         this.dispose();
       } else {
-
-      updateState.call(this, state.CALLING);
-      this.connection = kurentoUtils.WebRtcPeer.startSendRecv(this.localCamera[0], this.remoteCamera[0],
+        showResponse.call(this, 'info', 'You are accepted the incoming call');
+        updateState.call(this, state.CALLING);
+        this.connection = kurentoUtils.WebRtcPeer.startSendRecv(this.localCamera[0], this.remoteCamera[0],
         function (sdp, wp) {
           sendMessage.call(this, {
             id: 'incomingCallResponse',
@@ -103,6 +103,7 @@ var Widget = (function () {
             callResponse: 'accept',
             sdpOffer: sdp
           });
+          showResponse.call(this, 'info', 'Connection was establish successfully');
         }.bind(this),
         function (error) {
           alert('TODO');
@@ -119,9 +120,9 @@ var Widget = (function () {
       }
 
       updateState.call(this, state.CALLING);
-
-      this.connection = kurentoUtils.WebRtcPeer.startSendRecv(this.localCamera[0], this.remoteCamera[0],
+      kurentoUtils.WebRtcPeer.startSendRecv(this.localCamera[0], this.remoteCamera[0],
         function(offerSdp, wp) {
+          this.connection = wp;
           sendMessage.call(this, {
             'id': 'call',
             'from': this.username,
@@ -154,9 +155,33 @@ var Widget = (function () {
       return this;
     },
 
+    'endCall': function endCall(data) {
+      if (data) {
+        showResponse.call(this, 'warning', "User <strong>" + this.peername + "</strong> ended the call");
+      } else {
+        if (this.currentState == state.BUSY_LINE) {
+          showResponse.call(this, 'info', "Call ended successfully");
+          sendMessage.call(this, {
+            id : 'stop'
+          });
+        }
+      }
+
+      updateState.call(this, state.REGISTERED);
+      this.dispose();
+
+      return this;
+    },
+
+    'establishCall': function establishCall(data) {
+      updateState.call(this, state.BUSY_LINE);
+      this.connection.processSdpAnswer(data.sdpAnswer);
+    },
+
     'handleCallResponse': function handleCallResponse(data) {
       switch (data.response) {
         case 'accepted':
+          showResponse.call(this, 'info', "User <strong>" + this.peername + "</strong> accepted your call");
           updateState.call(this, state.BUSY_LINE);
           this.connection.processSdpAnswer(data.sdpAnswer);
           break;
@@ -242,10 +267,10 @@ var Widget = (function () {
         this.handleIncomingCall(data);
         break;
       case 'startCommunication':
-        alert('TODO');
+        this.establishCall(data);
         break;
       case 'stopCommunication':
-        alert('TODO');
+        this.endCall(data);
         break;
       default:
         alert('TODO');
@@ -259,7 +284,7 @@ var Widget = (function () {
       if (this.buttonCall.hasClass('btn-success')) {
         this.callUser();
       } else {
-        this.hangupUser();
+        this.endCall();
       }
     }.bind(this));
 
@@ -312,6 +337,14 @@ var Widget = (function () {
 
   var updateState = function updateState(newState) {
     switch (newState) {
+      case state.BUSY_LINE:
+        this.buttonCall.attr('disabled', false);
+        this.buttonShow.attr('disabled', false);
+        this.remoteCamera.attr('poster', 'images/webrtc.png');
+        this.remoteCamera.css({
+          'background': ''
+        });
+        break;
       case state.CALLING:
         this.buttonCall
           .removeClass('btn-success')
@@ -324,12 +357,10 @@ var Widget = (function () {
           'background': 'center transparent url("images/spinner.gif") no-repeat'
         });
         break;
-      case state.BUSY_LINE:
-        this.buttonCall.attr('disabled', false);
-        this.buttonShow.attr('disabled', false);
-        break;
       case state.REGISTERED:
         this.buttonCall.attr('disabled', false);
+        this.buttonShow.removeClass('active').attr('disabled', true);
+        this.localCamera.hide();
         this.remoteCamera.attr('src', '');
         this.localCamera.attr('src', '');
         this.remoteCamera.attr('poster', 'images/webrtc.png');
