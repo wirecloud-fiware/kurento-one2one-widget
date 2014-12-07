@@ -18,35 +18,25 @@ var Widget = (function () {
 
   'use strict';
 
-  var Widget = function Widget(container_selector, modal_selector) {
-    this.camera1 = $('<video>')
-      .addClass('camera camera-lg')
-      .attr('poster', 'images/webrtc.png')
+  var Widget = function Widget(containerSelector, modalSelector) {
+    var cameraContainer, bottomMenu;
+
+    this.remoteCamera = $('<video>').addClass('camera camera-lg')
+      .attr('poster', 'images/webrtc.png').attr('autoplay', true);
+    this.localCamera = $('<video>').addClass('camera camera-sm')
       .attr('autoplay', true);
 
-    this.camera2 = $('<video>')
-      .addClass('camera camera-sm')
-      .attr('poster', 'images/webrtc.png')
-      .attr('autoplay', true);
-    this.camera2.hide();
+    this.alertManager = $('<div>').hide();
+    this.iconPhone = $('<span>').addClass('fa fa-phone');
+    this.incomingCallModal = $(modalSelector);
 
-    this.alert = $('<div>')
-      .addClass('alert alert-info');
-    this.alert.hide();
-
-    this.icon = $('<span>')
-      .addClass('fa fa-phone');
-
-    this.button1 = $('<button>')
-      .addClass('btn btn-info btn-circle')
+    this.buttonAccept = $('<button>').addClass('btn btn-info btn-circle')
       .append($('<span>').addClass('fa fa-sign-in'))
       .tooltip({
         'title': 'Accept call waiting'
       });
-
-    this.button2 = $('<button>')
-      .addClass('btn btn-success btn-lg btn-circle')
-      .append(this.icon)
+    this.buttonCall = $('<button>').addClass('btn btn-success btn-lg btn-circle')
+      .append(this.iconPhone)
       .tooltip({
         'title': function title() {
           if ($(this).hasClass('btn-success')) {
@@ -56,9 +46,7 @@ var Widget = (function () {
           }
         }
       });
-
-    this.button3 = $('<button>')
-      .addClass('btn btn-info btn-circle')
+    this.buttonShow = $('<button>').addClass('btn btn-info btn-circle')
       .append($('<span>').addClass('fa fa-camera'))
       .tooltip({
         'title': function title() {
@@ -70,196 +58,302 @@ var Widget = (function () {
         }
       });
 
-    this.menu = $('<div>')
-      .addClass('bottom-menu')
-      .append(this.button1, this.button2, this.button3);
-    this.menu.hide();
+    bottomMenu = $('<div>').addClass('bottom-menu')
+      .append(this.buttonAccept, this.buttonCall, this.buttonShow).hide();
+    cameraContainer = $(containerSelector)
+      .append(this.remoteCamera, this.localCamera, this.alertManager, bottomMenu);
 
-    this.modal = $(modal_selector);
-    this.container = $(container_selector)
-      .append(this.camera1, this.camera2, this.alert, this.menu);
-
-    setState.call(this, state.UNREGISTERED);
-    this.initEventHandlers();
+    initHandlerGroup.call(this, cameraContainer, bottomMenu);
+    updateState.call(this, state.UNREGISTERED);
 
     this.serverURL = 'ws://130.206.81.33:8080/call';
-    this.clientName = 'jpajuelo/kurento';
-    this.peerName = 'braulio/kurento';
+
+    var flag = true;
+
+    if (flag) {
+      this.username = 'braulio/kurento';
+      this.peername = 'jpajuelo/kurento';
+    } else {
+      this.peername = 'braulio/kurento';
+      this.username = 'jpajuelo/kurento';
+    }
 
     this.reconnect();
   };
 
   Widget.prototype = {
 
-    'callRequest': function callRequest() {
-      if (!this.peerName.length) {
-        showAlert.call(this, 'Peername not selected.');
+    'answerIncomingCall': function answerIncomingCall() {
+      if (!this.callAccepted) {
+        sendMessage.call(this, {
+          id : 'incomingCallResponse',
+          from : this.callername,
+          callResponse : 'reject',
+          message : 'call-rejected'
+        });
+        this.dispose();
+      } else {
+
+      updateState.call(this, state.CALLING);
+      this.connection = kurentoUtils.WebRtcPeer.startSendRecv(this.localCamera[0], this.remoteCamera[0],
+        function (sdp, wp) {
+          sendMessage.call(this, {
+            id: 'incomingCallResponse',
+            from: this.callername,
+            callResponse: 'accept',
+            sdpOffer: sdp
+          });
+        }.bind(this),
+        function (error) {
+          alert('TODO');
+        });
+      }
+
+      return this;
+    },
+
+    'callUser': function callUser() {
+      if (!this.peername.length) {
+        showResponse.call(this, 'warning', 'No user for calling.');
         return this;
       }
 
-      setState.call(this, state.CALLING);
-      kurentoUtils.WebRtcPeer.startSendRecv(this.camera1[0], this.camera2[0],
+      updateState.call(this, state.CALLING);
+
+      this.connection = kurentoUtils.WebRtcPeer.startSendRecv(this.localCamera[0], this.remoteCamera[0],
         function(offerSdp, wp) {
-          this.peerWebRTC = wp;
-          this.server.send(JSON.stringify({
+          sendMessage.call(this, {
             'id': 'call',
-            'from': self.clientName,
-            'to': self.peerName,
+            'from': this.username,
+            'to': this.peername,
             'sdpOffer': offerSdp
-          }));
+          });
         }.bind(this),
         function (error) {
-          console.log(error);
-          setState.call(self, state.REGISTERED);
-        }.bind(this));
-    },
+          alert('TODO');
+        });
 
-    'callResponse': function callResponse(message) {
-        if (message.response !== 'accepted') {
-            console.info('Call not accepted by peer. Closing call');
-            var errorMessage = message.message ? message.message : 'Unknown reason for call rejection.';
-            console.log(errorMessage);
-            dispose();
-        } else {
-            setCallState(IN_CALL);
-            webRtcPeer.processSdpAnswer(message.sdpAnswer);
-        }
+      return this;
     },
 
     'close': function close() {
       if (this.server) {
         this.server.close();
+        delete this.server;
       }
 
       return this;
     },
 
-    'initEventHandlers': function initEventHandlers() {
-      this.button2.on('click', function (event) {
-        if (this.button2.hasClass('btn-success')) {
-          this.callRequest();
-        } else {
-          this.button2
-            .removeClass('btn-danger')
-            .addClass('btn-success');
-          this.icon
-            .removeClass('fa-tty')
-            .addClass('fa-phone');
-        }
-      }.bind(this));
+    'dispose': function dispose() {
+      if (this.connection) {
+        this.connection.dispose();
+        delete this.connection;
+      }
 
-      this.button3.on('click', function (event) {
-        if (this.button3.hasClass('active')) {
-          this.button3.removeClass('active');
-          this.camera2.fadeOut();
-        } else {
-          this.button3.addClass('active');
-          this.camera2.fadeIn();
-        }
-      }.bind(this));
+      return this;
+    },
 
-      this.container
-        .on('mouseenter', function (event) {
-          this.menu.fadeIn();
-        }.bind(this))
-        .on('mouseleave', function (event) {
-          this.menu.fadeOut();
-        }.bind(this));
+    'handleCallResponse': function handleCallResponse(data) {
+      switch (data.response) {
+        case 'accepted':
+          updateState.call(this, state.BUSY_LINE);
+          this.connection.processSdpAnswer(data.sdpAnswer);
+          break;
+        default:
+          this.dispose();
+          if (data.message == 'user declined') {
+            showResponse.call(this, 'warning', "User <strong>" + this.peername + "</strong> rejected your call");
+          } else {
+            showResponse.call(this, 'warning', "User <strong>" + this.peername + "</strong> is not registered");
+          }
+          updateState.call(this, state.REGISTERED);
+      }
+
+      return this;
+    },
+
+    'handleIncomingCall': function handleIncomingCall(data) {
+      if (this.currentState == state.BUSY_LINE) {
+        sendMessage.call(this, {
+          id : 'incomingCallResponse',
+          from : data.from,
+          callResponse : 'reject',
+          message : 'busy'
+        });
+      } else {
+        this.callAccepted = false;
+        this.callername = data.from;
+
+        $('#incoming-user').text(this.callername);
+        this.incomingCallModal.modal('show');
+      }
+
+      return this;
+    },
+
+    'handleRegistrationResponse': function handleRegistrationResponse(data) {
+      switch (data.response) {
+        case 'accepted':
+          showResponse.call(this, 'info', 'You have registered successfully');
+          updateState.call(this, state.REGISTERED);
+          break;
+        default:
+          showResponse.call(this, 'warning', 'User <strong>' + this.username + '</strong> is already in use.');
+          updateState.call(this, state.UNREGISTERED);
+      }
 
       return this;
     },
 
     'reconnect': function reconnect() {
+      this.close();
+
       this.server = new WebSocket(this.serverURL);
-      this.server.onopen = this.registerRequest.bind(this);
-      this.server.onmessage = receiveResponse.bind(this);
+      this.server.onopen = this.registerUser.bind(this);
+      this.server.onmessage = handleMessage.bind(this);
 
       return this;
     },
 
-    'registerRequest': function registerRequest() {
-      setState.call(this, state.UNREGISTERED);
-      this.server.send(JSON.stringify({
+    'registerUser': function registerUser() {
+      updateState.call(this, state.UNREGISTERED);
+      sendMessage.call(this, {
         'id': 'register',
-        'name': this.clientName
-      }));
-
-      return this;
-    },
-
-    'resgisterResponse': function resgisterResponse(data) {
-      switch (data.response) {
-        case 'accepted':
-          setState.call(this, state.REGISTERED);
-          break;
-        default:
-          setState.call(this, state.UNREGISTERED);
-          console.log(data.message);
-      }
+        'name': this.username
+      });
 
       return this;
     }
 
   };
 
-  var setState = function setState(new_state) {
-    switch (new_state) {
+  var handleMessage = function handleMessage(receivedMessage) {
+    var data = JSON.parse(receivedMessage.data);
+
+    switch (data.id) {
+      case 'registerResponse':
+        this.handleRegistrationResponse(data);
+        break;
+      case 'callResponse':
+        this.handleCallResponse(data);
+        break;
+      case 'incomingCall':
+        this.handleIncomingCall(data);
+        break;
+      case 'startCommunication':
+        alert('TODO');
+        break;
+      case 'stopCommunication':
+        alert('TODO');
+        break;
+      default:
+        alert('TODO');
+    }
+
+    return this;
+  };
+
+  var initHandlerGroup = function initHandlerGroup(cameraContainer, bottomMenu) {
+    this.buttonCall.on('click', function (event) {
+      if (this.buttonCall.hasClass('btn-success')) {
+        this.callUser();
+      } else {
+        this.hangupUser();
+      }
+    }.bind(this));
+
+    this.buttonShow.on('click', function (event) {
+      if (this.buttonShow.hasClass('active')) {
+        this.buttonShow.removeClass('active');
+        this.localCamera.fadeOut();
+      } else {
+        this.buttonShow.addClass('active');
+        this.localCamera.fadeIn();
+      }
+    }.bind(this));
+
+    cameraContainer
+      .on('mouseenter', function (event) {
+        bottomMenu.fadeIn();
+      })
+      .on('mouseleave', function (event) {
+        bottomMenu.fadeOut();
+      });
+
+    this.incomingCallModal.find('#accept-call').on('click', function (event) {
+      this.callAccepted = true;
+      this.incomingCallModal.modal('hide');
+    }.bind(this));
+
+    this.incomingCallModal.on('hidden.bs.modal', function (event) {
+      this.answerIncomingCall();
+    }.bind(this));
+
+    return this;
+  };
+
+  var sendMessage = function sendMessage(data) {
+    this.server.send(JSON.stringify(data));
+
+    return this;
+  };
+
+  var showResponse = function showResponse(type, response) {
+    this.alertManager
+      .removeClass().addClass('alert alert-' + type)
+      .empty().append(response)
+      .fadeIn(400).delay(900).slideUp(400);
+
+    return this;
+  };
+
+  var state = {'BUSY_LINE': 0, 'CALLING': 1, 'REGISTERED': 2, 'UNREGISTERED': 3};
+
+  var updateState = function updateState(newState) {
+    switch (newState) {
       case state.CALLING:
-        this.button2
+        this.buttonCall
           .removeClass('btn-success')
           .addClass('btn-danger');
-        this.icon
+        this.iconPhone
           .removeClass('fa-phone')
           .addClass('fa-tty');
-        this.camera1.attr('poster', 'images/transparent-1px.png');
-        this.camera1.css({
+        this.remoteCamera.attr('poster', 'images/transparent-1px.png');
+        this.remoteCamera.css({
           'background': 'center transparent url("images/spinner.gif") no-repeat'
         });
         break;
+      case state.BUSY_LINE:
+        this.buttonCall.attr('disabled', false);
+        this.buttonShow.attr('disabled', false);
+        break;
       case state.REGISTERED:
-        showAlert.call(this, 'Registered as <strong>' + this.clientName + '</strong>');
-        this.button2.attr('disabled', false);
+        this.buttonCall.attr('disabled', false);
+        this.remoteCamera.attr('src', '');
+        this.localCamera.attr('src', '');
+        this.remoteCamera.attr('poster', 'images/webrtc.png');
+        this.remoteCamera.css({
+          'background': ''
+        });
+        this.buttonCall
+          .removeClass('btn-danger')
+          .addClass('btn-success');
+        this.iconPhone
+          .removeClass('fa-tty')
+          .addClass('fa-phone');
         break;
       case state.UNREGISTERED:
-        this.button1.attr('disabled', true);
-        this.button2.attr('disabled', true);
-        this.button3.attr('disabled', true);
+        this.buttonAccept.attr('disabled', true);
+        this.buttonCall.attr('disabled', true);
+        this.buttonShow.attr('disabled', true);
+        this.localCamera.hide();
         break;
       default:
         return this;
     }
 
-    this.state = new_state;
-
-    return this;
-  };
-
-  var showAlert = function showAlert(message) {
-    this.alert
-      .empty()
-      .append(message)
-      .fadeIn(400)
-      .delay(800)
-      .slideUp(400);
-
-    return this;
-  };
-
-  var state = {'CALLING': 0, 'REGISTERED': 1, 'UNREGISTERED': 2};
-
-  var receiveResponse = function receiveResponse(response) {
-    var response_data = JSON.parse(response.data);
-
-    switch (response_data.id) {
-      case 'registerResponse':
-        this.resgisterResponse(response_data);
-        break;
-      case 'callResponse':
-        this.callResponse(response_data);
-        break;
-      default:
-          console.error('Unrecognized', response_data);
-    }
+    this.currentState = newState;
 
     return this;
   };
@@ -270,10 +364,10 @@ var Widget = (function () {
 
 $(function () {
 
-  var widget_instance = new Widget('#camera-container', '#incoming-modal');
+  var wgt = new Widget('#camera-container', '#incoming-modal');
 
   $(window).on('beforeunload', function () {
-    widget_instance.close();
+    wgt.close();
   });
 
 });
