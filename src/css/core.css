@@ -18,16 +18,14 @@
     border: solid 1px #ddd;
     border-radius: 4px;
 }
-
 .camera-sm {
     position: absolute;
     right: 0px;
     top: 0px;
-    margin: 5px;
     width: 120px;
-    height: 80px;
+    height: 90px;
+    margin: 5px;
 }
-
 .camera-lg {
     width: 320px;
     height: 240px;
@@ -51,17 +49,15 @@
     padding: 0px;
     margin: 0px 2px;
 }
-
 .btn-lg {
     border-radius: 20px;
     min-width: 40px;
     min-height: 40px;
 }
 
-
 .modal-dialog {
     width: 300px;
-    margin: 50px auto 0px;
+    margin: 50px auto;
 }
 .modal-dialog .modal-header {
     padding: 6px 8px;
@@ -86,9 +82,99 @@
     font-size: 13px;
 }
 
+.banner-loading {
+    position: absolute;
+    left: 0px;
+    right: 0px;
+    top: 95px;
+    font-size: 30px;
+    text-align: center;
+}
+.banner-loading .banner-title {
+    margin-right: 10px;
+}
+
 #camera-container {
     position: relative;
     width: 320px;
     height: 240px;
     margin: 2px auto 0px;
+}
+
+/* Small device: 320x240 / 120x90 */
+@media (min-width: 325px) {
+    #camera-container {
+        width: 320px;
+        height: 240px;
+    }
+
+    .camera-lg {
+        width: 320px;
+        height: 240px;
+    }
+    .camera-sm {
+        width: 120px;
+        height: 90px;
+    }
+
+    .modal-dialog {
+        margin-top: 50px;
+    }
+
+    .banner-loading {
+        top: 95px;
+        font-size: 30px;
+    }
+}
+
+/* Medium device: 480x360 / 160x120 */
+@media (min-width: 485px) {
+    #camera-container {
+        width: 480px;
+        height: 360px;
+    }
+
+    .camera-lg {
+        width: 480px;
+        height: 360px;
+    }
+    .camera-sm {
+        width: 160px;
+        height: 120px;
+    }
+
+    .modal-dialog {
+        margin-top: 100px;
+    }
+
+    .banner-loading {
+        top: 140px;
+        font-size: 40px;
+    }
+}
+
+/* Large device: 640x480 / 240x180 */
+@media (min-width: 645px) {
+    #camera-container {
+        width: 640px;
+        height: 480px;
+    }
+
+    .camera-lg {
+        width: 640px;
+        height: 480px;
+    }
+    .camera-sm {
+        width: 240px;
+        height: 180px;
+    }
+
+    .modal-dialog {
+        margin-top: 170px;
+    }
+
+    .banner-loading {
+        top: 200px;
+        font-size: 40px;
+    }
 }

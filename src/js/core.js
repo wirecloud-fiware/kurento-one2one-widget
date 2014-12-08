@@ -22,9 +22,13 @@ var Widget = (function () {
     var cameraContainer, bottomMenu;
 
     this.remoteCamera = $('<video>').addClass('camera camera-lg')
-      .attr('poster', 'images/webrtc.png').attr('autoplay', true);
+      .attr('autoplay', true).attr('poster', 'images/webrtc.png');
     this.localCamera = $('<video>').addClass('camera camera-sm')
       .attr('autoplay', true);
+
+    this.banner = $('<span>').addClass('banner-title');
+    this.spinnerManager = $('<div>').addClass('banner-loading')
+      .append(this.banner, '<i class="fa fa-spinner fa-spin"></i>').hide();
 
     this.alertManager = $('<div>').hide();
     this.iconPhone = $('<span>').addClass('fa fa-phone');
@@ -51,9 +55,9 @@ var Widget = (function () {
       .tooltip({
         'title': function title() {
           if ($(this).hasClass('active')) {
-            return 'Hide small screen';
+            return 'Hide your webcam';
           } else {
-            return 'Show small screen';
+            return 'Show your webcam';
           }
         }
       });
@@ -61,21 +65,21 @@ var Widget = (function () {
     bottomMenu = $('<div>').addClass('bottom-menu')
       .append(this.buttonAccept, this.buttonCall, this.buttonShow).hide();
     cameraContainer = $(containerSelector)
-      .append(this.remoteCamera, this.localCamera, this.alertManager, bottomMenu);
+      .append(this.remoteCamera, this.localCamera, this.alertManager, this.spinnerManager, bottomMenu);
 
     initHandlerGroup.call(this, cameraContainer, bottomMenu);
     updateState.call(this, state.UNREGISTERED);
 
     this.serverURL = 'ws://130.206.81.33:8080/call';
 
-    var flag = false;
+    var flag = true;
 
     if (flag) {
-      this.username = 'b/kurento';
-      this.peername = 'j/kurento';
+      this.username = 'a/kurento';
+      this.peername = 'c/kurento';
     } else {
-      this.peername = 'b/kurento';
-      this.username = 'j/kurento';
+      this.peername = 'a/kurento';
+      this.username = 'c/kurento';
     }
 
     this.reconnect();
@@ -93,21 +97,20 @@ var Widget = (function () {
         });
         this.dispose();
       } else {
-        showResponse.call(this, 'info', 'You are accepted the incoming call');
-        updateState.call(this, state.CALLING);
+        updateState.call(this, state.ANSWERING);
         this.connection = kurentoUtils.WebRtcPeer.startSendRecv(this.localCamera[0], this.remoteCamera[0],
-        function (sdp, wp) {
-          sendMessage.call(this, {
-            id: 'incomingCallResponse',
-            from: this.callername,
-            callResponse: 'accept',
-            sdpOffer: sdp
+          function (sdp, wp) {
+            sendMessage.call(this, {
+              id: 'incomingCallResponse',
+              from: this.callername,
+              callResponse: 'accept',
+              sdpOffer: sdp
+            });
+            showResponse.call(this, 'info', 'Call was established successfully');
+          }.bind(this),
+          function (error) {
+            alert('TODO');
           });
-          showResponse.call(this, 'info', 'Connection was establish successfully');
-        }.bind(this),
-        function (error) {
-          alert('TODO');
-        });
       }
 
       return this;
@@ -181,7 +184,7 @@ var Widget = (function () {
     'handleCallResponse': function handleCallResponse(data) {
       switch (data.response) {
         case 'accepted':
-          showResponse.call(this, 'info', "User <strong>" + this.peername + "</strong> accepted your call");
+          showResponse.call(this, 'info', 'Call was established successfully');
           updateState.call(this, state.BUSY_LINE);
           this.connection.processSdpAnswer(data.sdpAnswer);
           break;
@@ -341,21 +344,22 @@ var Widget = (function () {
         this.buttonCall.attr('disabled', false);
         this.buttonShow.attr('disabled', false);
         this.remoteCamera.attr('poster', 'images/webrtc.png');
-        this.remoteCamera.css({
-          'background': ''
-        });
+        this.spinnerManager.hide();
         break;
+      case state.ANSWERING:
+        this.banner.empty().text('Answering . . .');
       case state.CALLING:
+        if (newState !== state.ANSWERING) {
+          this.banner.empty().text('Calling . . .');
+        }
         this.buttonCall
           .removeClass('btn-success')
           .addClass('btn-danger');
         this.iconPhone
           .removeClass('fa-phone')
           .addClass('fa-tty');
-        this.remoteCamera.attr('poster', 'images/transparent-1px.png');
-        this.remoteCamera.css({
-          'background': 'center transparent url("images/spinner.gif") no-repeat'
-        });
+        this.remoteCamera.attr('poster', '');
+        this.spinnerManager.show();
         break;
       case state.REGISTERED:
         this.buttonCall.attr('disabled', false);
@@ -364,9 +368,7 @@ var Widget = (function () {
         this.remoteCamera.attr('src', '');
         this.localCamera.attr('src', '');
         this.remoteCamera.attr('poster', 'images/webrtc.png');
-        this.remoteCamera.css({
-          'background': ''
-        });
+        this.spinnerManager.hide();
         this.buttonCall
           .removeClass('btn-danger')
           .addClass('btn-success');
