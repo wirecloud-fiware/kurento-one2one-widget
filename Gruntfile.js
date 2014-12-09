@@ -14,64 +14,80 @@
  *   limitations under the License.
  */
 
+
 var bower = require('bower');
 
 module.exports = function (grunt) {
 
-    'use strict';
+  'use strict';
 
-    grunt.initConfig({
-        pkg: grunt.file.readJSON('package.json'),
+  grunt.initConfig({
 
-        bower: {
-            install: {
-                options: {
-                    layout: function(type, component, source) {
-                        return type;
-                    },
-                    targetDir: './src/lib'
-                }
-            }
+    pkg: grunt.file.readJSON('package.json'),
+
+    bower: {
+      install: {
+        options: {
+          layout: function(type, component, source) {
+            return type;
+          },
+          targetDir: './src/lib'
+        }
+      }
+    },
+
+    compress: {
+      widget: {
+        options: {
+          mode: 'zip',
+          archive: 'build/<%= pkg.vendor %>_<%= pkg.name %>_<%= pkg.version %>-dev.wgt'
         },
+        files: [
+          {
+            expand: true,
+            cwd: 'src',
+            src: [
+              'css/**/*',
+              'images/**/*',
+              'js/**/*',
+              'lib/**/*',
+              'index.html',
+              'config.xml'
+            ]
+          }
+        ]
+      }
+    },
 
-        compress: {
-            widget: {
-                options: {
-                    mode: 'zip',
-                    archive: 'build/<%= pkg.vendor %>_<%= pkg.name %>_<%= pkg.version %>-dev.wgt'
-                },
-                files: [
-                    {expand: true, src: ['lib/**/*', 'config.xml', 'index.html', 'js/**/*', 'css/**/*', 'images/**/*'], cwd: 'src'}
-                ]
-            }
-        },
+    clean: ['build'],
 
-        clean: ['build'],
+    replace: {
+      version: {
+        overwrite: true,
+        src: ['src/config.xml'],
+        replacements: [{
+            from: /version=\"[0-9]+\.[0-9]+\.[0-9]+(-dev)?\"/g,
+            to: 'version="<%= pkg.version %>"'
+        }]
+      }
+    },
 
-        replace: {
-            version: {
-                src: ['src/config.xml'],
-                overwrite: true,
-                replacements: [{
-                    from: /version=\"[0-9]+\.[0-9]+\.[0-9]+(-dev)?\"/g,
-                    to: 'version="<%= pkg.version %>"'
-                }]
-            }
-        },
+    jshint: {
+      all: ['src/js/**/*']
+    }
 
-        jshint: {
-            all: ['src/js/**/*', 'src/test/**/*', 'Gruntfile.js', '!src/test/fixtures/']
-        },
-    });
+  });
 
-    grunt.loadNpmTasks('grunt-bower-task');
-    grunt.loadNpmTasks('grunt-contrib-compress');
-    grunt.loadNpmTasks('grunt-contrib-jshint');
-    grunt.loadNpmTasks('grunt-contrib-clean');
-    grunt.loadNpmTasks('grunt-text-replace');
+  grunt.loadNpmTasks('grunt-bower-task');
+  grunt.loadNpmTasks('grunt-contrib-compress');
+  grunt.loadNpmTasks('grunt-contrib-jshint');
+  grunt.loadNpmTasks('grunt-contrib-clean');
+  grunt.loadNpmTasks('grunt-text-replace');
 
-    grunt.registerTask('zip', 'compress:widget');
-    grunt.registerTask('version', ['replace:version']);
-    grunt.registerTask('default', ['bower:install', 'version', 'zip']);
+  grunt.registerTask('default', [
+    'bower:install',
+    'replace:version',
+    'compress:widget'
+  ]);
 
 };
