@@ -35,7 +35,7 @@ var Widget = (function () {
     this.incomingCallModal = $(modalSelector);
 
     this.buttonAccept = $('<button>').addClass('btn btn-info btn-circle')
-      .append($('<span>').addClass('fa fa-sign-in'))
+      .append($('<span>').addClass('fa fa-bell'))
       .tooltip({
         'title': 'Accept call waiting'
       });
@@ -51,7 +51,7 @@ var Widget = (function () {
         }
       });
     this.buttonShow = $('<button>').addClass('btn btn-info btn-circle')
-      .append($('<span>').addClass('fa fa-camera'))
+      .append($('<span>').addClass('fa fa-video-camera'))
       .tooltip({
         'title': function title() {
           if ($(this).hasClass('active')) {
