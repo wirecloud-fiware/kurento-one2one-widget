@@ -1,21 +1,21 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<widget xmlns="http://wirecloud.conwet.fi.upm.es/ns/macdescription/1" vendor="CoNWeT" name="kurento-one2one" version="1.0.9">
+<widget xmlns="http://wirecloud.conwet.fi.upm.es/ns/macdescription/1" vendor="CoNWeT" name="one2one-call" version="1.0.9">
     <details>
-        <title>Kurento - One2One</title>
+        <title>One2One Video Call</title>
         <authors>Jaime Pajuelo &lt;jpajuelo@conwet.com&gt;</authors>
         <email>jpajuelo@conwet.com</email>
         <image>images/webrtc.png</image>
         <smartphoneimage>images/webrtc.png</smartphoneimage>
-        <description>A simple widget for creating a one-to-one call, using webrtc and kurento services.</description>
-        <doc>https://github.com/wirecloud-fiware/kurento-one2one-widget</doc>
+        <description>A web widget that allows join a one-2-one video call, supported by Kurento Media Server.</description>
+        <homepage>https://github.com/wirecloud-fiware/widget-one2one-call</homepage>
     </details>
     <preferences>
-        <preference name="server-url" label="Server URL" description="URL of the one2one server to use" type="text" default="ws://130.206.81.33:8080/call" />
-        <preference name="stand-alone" label="Standalone" description="Allow to choose the user for calling" type="boolean" default="true" />
+        <preference name="server-url" label="Server URL" description="URL of Media Server with WebRTC support" type="text" default="ws://130.206.81.33:8080/call" />
+        <preference name="stand-alone" label="Standalone" description="Allow choose the user for calling" type="boolean" default="true" />
     </preferences>
     <wiring>
-        <inputendpoint name="call-user" type="text" label="Call user" description="Calls to user received" friendcode="participant-name" />
-        <inputendpoint name="hangup-user" type="text" label="Hang up user" description="Ends current call of the user received" friendcode="name" />
+        <inputendpoint name="call-user" type="text" label="Call user" description="Calls the user received" friendcode="participant-name" />
+        <inputendpoint name="hangup-user" type="text" label="Hang up user" description="Hang up the user received" friendcode="participant-name" />
         <outputendpoint name="call-status" type="text" label="Call status" description="Sends the current status of the call" friendcode="call-status" />
     </wiring>
     <contents src="index.html"/>
