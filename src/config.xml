@@ -10,13 +10,14 @@
         <doc>https://github.com/wirecloud-fiware/kurento-one2one-widget</doc>
     </details>
     <preferences>
-        <preference name="server-url" label="one2one server" description="URL of the one2one server to use" type="text" default="ws://130.206.81.33:8080/call" />
-        <preference name="standalone" label="Standalone" description="If checked lets the user choose the user to call" type="boolean" default="true" />
+        <preference name="server-url" label="Server URL" description="URL of the one2one server to use" type="text" default="ws://130.206.81.33:8080/call" />
+        <preference name="stand-alone" label="Standalone" description="Allow to choose the user for calling" type="boolean" default="true" />
     </preferences>
     <wiring>
-        <inputendpoint name="kurento-command" type="text" label="Call/Stop" description="Sends instruction to call a user or stop the call in progress" friendcode="kurento-command" />
-        <outputendpoint name="call-status" type="text" label="Call status" description="Sends the call status" friendcode="call-status" />
+        <inputendpoint name="call-user" type="text" label="Call user" description="Calls to user received" friendcode="participant-name" />
+        <inputendpoint name="hangup-user" type="text" label="Hang up user" description="Ends current call of the user received" friendcode="name" />
+        <outputendpoint name="call-status" type="text" label="Call status" description="Sends the current status of the call" friendcode="call-status" />
     </wiring>
     <contents src="index.html"/>
-    <rendering width="6" height="10"/>
+    <rendering width="6" height="14"/>
 </widget>

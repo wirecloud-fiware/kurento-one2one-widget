@@ -19,7 +19,7 @@ var Widget = (function () {
   'use strict';
 
   var Widget = function Widget(containerSelector, modalSelector) {
-    var cameraContainer, bottomMenu;
+    var cameraContainer, bottomMenu, buttonList;
 
     this.remoteCamera = $('<video>').addClass('camera camera-lg')
       .attr('autoplay', true).attr('poster', 'images/webrtc.png');
@@ -62,26 +62,23 @@ var Widget = (function () {
         }
       });
 
+    this.field = $('<input>').addClass('form-control')
+      .attr('type', 'text').attr('placeholder', 'Username/Workspace');
+    this.fieldContainer = $('<div>').addClass('standalone')
+      .append(this.field);
+
+    buttonList = $('<div>').addClass('button-list')
+      .append(this.buttonAccept, this.buttonCall, this.buttonShow);
+
     bottomMenu = $('<div>').addClass('bottom-menu')
-      .append(this.buttonAccept, this.buttonCall, this.buttonShow).hide();
+      .append(this.fieldContainer, buttonList).hide();
     cameraContainer = $(containerSelector)
-      .append(this.remoteCamera, this.localCamera, this.alertManager, this.spinnerManager, bottomMenu);
+      .append(this.remoteCamera, this.localCamera, this.alertManager,this.spinnerManager, bottomMenu);
 
     initHandlerGroup.call(this, cameraContainer, bottomMenu);
     updateState.call(this, state.UNREGISTERED);
 
-    this.serverURL = 'ws://130.206.81.33:8080/call';
-
-    var flag = true;
-
-    if (flag) {
-      this.username = 'a/kurento';
-      this.peername = 'c/kurento';
-    } else {
-      this.peername = 'a/kurento';
-      this.username = 'c/kurento';
-    }
-
+    this.loadPreferences();
     this.reconnect();
   };
 
@@ -106,7 +103,7 @@ var Widget = (function () {
               callResponse: 'accept',
               sdpOffer: sdp
             });
-            showResponse.call(this, 'info', 'Call was established successfully');
+            showResponse.call(this, 'info', 'The call was connected successfully');
           }.bind(this),
           function (error) {
             alert('TODO');
@@ -117,8 +114,12 @@ var Widget = (function () {
     },
 
     'callUser': function callUser() {
+      if (this.currentState !== state.REGISTERED) {
+        return this;
+      }
+
       if (!this.peername.length) {
-        showResponse.call(this, 'warning', 'No user for calling.');
+        showResponse.call(this, 'warning', 'No user for calling');
         return this;
       }
 
@@ -158,16 +159,24 @@ var Widget = (function () {
       return this;
     },
 
-    'endCall': function endCall(data) {
-      if (data) {
-        showResponse.call(this, 'warning', "User <strong>" + this.peername + "</strong> ended the call");
-      } else {
-        if (this.currentState == state.BUSY_LINE) {
-          showResponse.call(this, 'info', "Call ended successfully");
+    'endCall': function endCall(friendName) {
+      if (this.currentState !== state.BUSY_LINE && this.currentState !== state.CALLING) {
+        return this;
+      }
+
+      if (typeof friendName === 'string') {
+        if (this.peername !== friendName) {
+          showResponse.call(this, 'warning', "User <strong>" + friendName + "</strong> is not the user of this call");
+          return this;
+        }
+        if (this.currentState === state.BUSY_LINE) {
+          showResponse.call(this, 'info', "The call was ended successfully");
           sendMessage.call(this, {
             id : 'stop'
           });
         }
+      } else {
+        showResponse.call(this, 'warning', "User <strong>" + this.peername + "</strong> ended the call");
       }
 
       updateState.call(this, state.REGISTERED);
@@ -184,7 +193,7 @@ var Widget = (function () {
     'handleCallResponse': function handleCallResponse(data) {
       switch (data.response) {
         case 'accepted':
-          showResponse.call(this, 'info', 'Call was established successfully');
+          showResponse.call(this, 'info', 'The call was connected successfully');
           updateState.call(this, state.BUSY_LINE);
           this.connection.processSdpAnswer(data.sdpAnswer);
           break;
@@ -192,6 +201,8 @@ var Widget = (function () {
           this.dispose();
           if (data.message == 'user declined') {
             showResponse.call(this, 'warning', "User <strong>" + this.peername + "</strong> rejected your call");
+          } else if (data.message == 'busy') {
+            showResponse.call(this, 'warning', "User <strong>" + this.peername + "</strong> line is busy right now");
           } else {
             showResponse.call(this, 'warning', "User <strong>" + this.peername + "</strong> is not registered");
           }
@@ -223,12 +234,32 @@ var Widget = (function () {
     'handleRegistrationResponse': function handleRegistrationResponse(data) {
       switch (data.response) {
         case 'accepted':
-          showResponse.call(this, 'info', 'You have registered successfully');
+          showResponse.call(this, 'info', 'You were registered successfully');
           updateState.call(this, state.REGISTERED);
           break;
         default:
           showResponse.call(this, 'warning', 'User <strong>' + this.username + '</strong> is already in use.');
           updateState.call(this, state.UNREGISTERED);
+      }
+
+      return this;
+    },
+
+    'loadPreferences': function loadPreferences() {
+      this.serverURL = MashupPlatform.prefs.get('server-url');
+
+      this.username = MashupPlatform.context.get('username') +
+        '/' + MashupPlatform.mashup.context.get('name');
+
+      this.standalone = MashupPlatform.prefs.get('stand-alone');
+
+      this.peername = '';
+      this.field.val('');
+
+      if (this.standalone) {
+        this.fieldContainer.show();
+      } else {
+        this.fieldContainer.hide();
       }
 
       return this;
@@ -273,7 +304,7 @@ var Widget = (function () {
         this.establishCall(data);
         break;
       case 'stopCommunication':
-        this.endCall(data);
+        this.endCall();
         break;
       default:
         alert('TODO');
@@ -287,7 +318,7 @@ var Widget = (function () {
       if (this.buttonCall.hasClass('btn-success')) {
         this.callUser();
       } else {
-        this.endCall();
+        this.endCall(this.peername);
       }
     }.bind(this));
 
@@ -308,6 +339,10 @@ var Widget = (function () {
       .on('mouseleave', function (event) {
         bottomMenu.fadeOut();
       });
+
+    this.field.on('blur', function (event) {
+      this.peername = this.field.val();
+    }.bind(this));
 
     this.incomingCallModal.find('#accept-call').on('click', function (event) {
       this.callAccepted = true;
@@ -345,12 +380,18 @@ var Widget = (function () {
         this.buttonShow.attr('disabled', false);
         this.remoteCamera.attr('poster', 'images/webrtc.png');
         this.spinnerManager.hide();
+        if (this.standalone) {
+          this.fieldContainer.hide();
+        }
+        MashupPlatform.wiring.pushEvent('call-status', 'BUSY_LINE');
         break;
       case state.ANSWERING:
         this.banner.empty().text('Answering . . .');
+        MashupPlatform.wiring.pushEvent('call-status', 'ANSWERING');
       case state.CALLING:
         if (newState !== state.ANSWERING) {
           this.banner.empty().text('Calling . . .');
+          MashupPlatform.wiring.pushEvent('call-status', 'CALLING');
         }
         this.buttonCall
           .removeClass('btn-success')
@@ -358,8 +399,11 @@ var Widget = (function () {
         this.iconPhone
           .removeClass('fa-phone')
           .addClass('fa-tty');
-        this.remoteCamera.attr('poster', '');
+        this.remoteCamera.attr('poster', 'images/transparent-1px.png');
         this.spinnerManager.show();
+        if (this.standalone) {
+          this.fieldContainer.hide();
+        }
         break;
       case state.REGISTERED:
         this.buttonCall.attr('disabled', false);
@@ -375,12 +419,20 @@ var Widget = (function () {
         this.iconPhone
           .removeClass('fa-tty')
           .addClass('fa-phone');
+        if (this.standalone) {
+          this.fieldContainer.show();
+        } else {
+          this.fieldContainer.hide();
+        }
+        MashupPlatform.wiring.pushEvent('call-status', 'REGISTERED');
         break;
       case state.UNREGISTERED:
         this.buttonAccept.attr('disabled', true);
         this.buttonCall.attr('disabled', true);
         this.buttonShow.attr('disabled', true);
         this.localCamera.hide();
+        this.fieldContainer.hide();
+        MashupPlatform.wiring.pushEvent('call-status', 'UNREGISTERED');
         break;
       default:
         return this;
@@ -397,7 +449,25 @@ var Widget = (function () {
 
 $(function () {
 
-  var wgt = new Widget('#camera-container', '#incoming-modal');
+  var wgt = new Widget('body', '#incoming-modal');
+
+  MashupPlatform.prefs.registerCallback(function () {
+    wgt.loadPreferences();
+    wgt.reconnect();
+  });
+
+  MashupPlatform.wiring.registerCallback('call-user', function (friendName) {
+    wgt.peername = friendName;
+    wgt.callUser();
+  });
+
+  MashupPlatform.wiring.registerCallback('hangup-user', function (friendName) {
+    if (typeof friendName !== 'string' || !friendName.length) {
+      return;
+    }
+
+    wgt.endCall(friendName);
+  });
 
   $(window).on('beforeunload', function () {
     wgt.close();

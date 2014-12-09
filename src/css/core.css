@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+body {
+    width: 100%;
+    height: 100%;
+}
 
 .camera {
-    border: solid 1px #ddd;
-    border-radius: 4px;
+    border: 0px none;
 }
 .camera-sm {
     position: absolute;
@@ -24,21 +27,20 @@
     top: 0px;
     width: 120px;
     height: 90px;
-    margin: 5px;
+    margin: 4px;
+    border: solid 1px #ddd;
+    border-radius: 4px;
 }
 .camera-lg {
-    width: 320px;
-    height: 240px;
+    position: absolute;
+    height: 100%;
+    width: 100%;
 }
 
 .bottom-menu {
     position: absolute;
-    padding: 5px 10px;
-    left: 0px;
-    right: 0px;
+    width: 100%;
     bottom: 0px;
-    background-color: rgba(20, 20, 20, 0.5);
-    border-radius: 0px 0px 4px 4px;
     text-align: center;
 }
 
@@ -75,106 +77,48 @@
 .alert {
     position: absolute;
     top: 0px;
-    left: 0px;
-    right: 0px;
     text-align: center;
-    padding: 2px 0px;
+    padding: 6px 0px;
     font-size: 13px;
+    width: 100%;
+    border-radius: 0px;
+    border-right: none;
+    border-left: none;
+    border-top: none;
 }
 
 .banner-loading {
-    position: absolute;
+    width: 50%;
+    margin: auto;
+    top: 0px;
     left: 0px;
+    bottom: 0px;
     right: 0px;
-    top: 95px;
-    font-size: 30px;
     text-align: center;
+    font-size: 30px;
+    overflow: auto;
+    position: absolute;
+    height: 43px;
 }
 .banner-loading .banner-title {
     margin-right: 10px;
 }
 
-#camera-container {
-    position: relative;
-    width: 320px;
-    height: 240px;
-    margin: 2px auto 0px;
+.button-list {
+    display: block;
+    padding: 5px 10px;
+    background-color: rgba(20, 20, 20, 0.5);
 }
 
-/* Small device: 320x240 / 120x90 */
-@media (min-width: 325px) {
-    #camera-container {
-        width: 320px;
-        height: 240px;
-    }
-
-    .camera-lg {
-        width: 320px;
-        height: 240px;
-    }
-    .camera-sm {
-        width: 120px;
-        height: 90px;
-    }
-
-    .modal-dialog {
-        margin-top: 50px;
-    }
-
-    .banner-loading {
-        top: 95px;
-        font-size: 30px;
-    }
+.standalone {
+    display: block;
+    width: 180px;
+    margin: 0px auto;
+    background-color: rgba(20, 20, 20, 0.5);
+    padding: 8px 8px 0px;
+    border-radius: 4px 4px 0px 0px;
 }
-
-/* Medium device: 480x360 / 160x120 */
-@media (min-width: 485px) {
-    #camera-container {
-        width: 480px;
-        height: 360px;
-    }
-
-    .camera-lg {
-        width: 480px;
-        height: 360px;
-    }
-    .camera-sm {
-        width: 160px;
-        height: 120px;
-    }
-
-    .modal-dialog {
-        margin-top: 100px;
-    }
-
-    .banner-loading {
-        top: 140px;
-        font-size: 40px;
-    }
-}
-
-/* Large device: 640x480 / 240x180 */
-@media (min-width: 645px) {
-    #camera-container {
-        width: 640px;
-        height: 480px;
-    }
-
-    .camera-lg {
-        width: 640px;
-        height: 480px;
-    }
-    .camera-sm {
-        width: 240px;
-        height: 180px;
-    }
-
-    .modal-dialog {
-        margin-top: 170px;
-    }
-
-    .banner-loading {
-        top: 200px;
-        font-size: 40px;
-    }
+.standalone .form-control {
+    height: auto;
+    padding: 4px 6px;
 }
