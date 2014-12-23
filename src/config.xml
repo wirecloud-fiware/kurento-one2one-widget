@@ -1,16 +1,16 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<widget xmlns="http://wirecloud.conwet.fi.upm.es/ns/macdescription/1" vendor="CoNWeT" name="one2one-call" version="1.0.9">
+<widget xmlns="http://wirecloud.conwet.fi.upm.es/ns/macdescription/1" vendor="CoNWeT" name="kurento-one2one" version="1.1.0">
     <details>
-        <title>One2One Video Call</title>
+        <title>Kurento - One2One</title>
         <authors>Jaime Pajuelo &lt;jpajuelo@conwet.com&gt;</authors>
-        <email>jpajuelo@conwet.com</email>
+        <email>wirecloud@conwet.com</email>
         <image>images/webrtc.png</image>
         <smartphoneimage>images/webrtc.png</smartphoneimage>
-        <description>A web widget that allows join a one-2-one video call, supported by Kurento Media Server.</description>
+        <description>A widget for making videoconferences using Kurento</description>
         <homepage>https://github.com/wirecloud-fiware/widget-one2one-call</homepage>
     </details>
     <preferences>
-        <preference name="server-url" label="Server URL" description="URL of Media Server with WebRTC support" type="text" default="ws://130.206.81.33:8080/call" />
+        <preference name="server-url" label="Server URL" description="URL of one2one server" type="text" default="ws://130.206.81.33:8080/call" />
         <preference name="stand-alone" label="Standalone" description="Allow choose the user for calling" type="boolean" default="true" />
     </preferences>
     <wiring>
