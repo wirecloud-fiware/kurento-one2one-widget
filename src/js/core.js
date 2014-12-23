@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+/*global $, kurentoUtils, MashupPlatform*/
+
 var Widget = (function () {
 
   'use strict';
@@ -375,67 +377,68 @@ var Widget = (function () {
 
   var updateState = function updateState(newState) {
     switch (newState) {
-      case state.BUSY_LINE:
-        this.buttonCall.attr('disabled', false);
-        this.buttonShow.attr('disabled', false);
-        this.remoteCamera.attr('poster', 'images/webrtc.png');
-        this.spinnerManager.hide();
-        if (this.standalone) {
-          this.fieldContainer.hide();
-        }
-        MashupPlatform.wiring.pushEvent('call-status', 'BUSY_LINE');
-        break;
-      case state.ANSWERING:
-        this.banner.empty().text('Answering . . .');
-        MashupPlatform.wiring.pushEvent('call-status', 'ANSWERING');
-      case state.CALLING:
-        if (newState !== state.ANSWERING) {
-          this.banner.empty().text('Calling . . .');
-          MashupPlatform.wiring.pushEvent('call-status', 'CALLING');
-        }
-        this.buttonCall
-          .removeClass('btn-success')
-          .addClass('btn-danger');
-        this.iconPhone
-          .removeClass('fa-phone')
-          .addClass('fa-tty');
-        this.remoteCamera.attr('poster', 'images/transparent-1px.png');
-        this.spinnerManager.show();
-        if (this.standalone) {
-          this.fieldContainer.hide();
-        }
-        break;
-      case state.REGISTERED:
-        this.buttonCall.attr('disabled', false);
-        this.buttonShow.removeClass('active').attr('disabled', true);
-        this.localCamera.hide();
-        this.remoteCamera.attr('src', '');
-        this.localCamera.attr('src', '');
-        this.remoteCamera.attr('poster', 'images/webrtc.png');
-        this.spinnerManager.hide();
-        this.buttonCall
-          .removeClass('btn-danger')
-          .addClass('btn-success');
-        this.iconPhone
-          .removeClass('fa-tty')
-          .addClass('fa-phone');
-        if (this.standalone) {
-          this.fieldContainer.show();
-        } else {
-          this.fieldContainer.hide();
-        }
-        MashupPlatform.wiring.pushEvent('call-status', 'REGISTERED');
-        break;
-      case state.UNREGISTERED:
-        this.buttonAccept.attr('disabled', true);
-        this.buttonCall.attr('disabled', true);
-        this.buttonShow.attr('disabled', true);
-        this.localCamera.hide();
+    case state.BUSY_LINE:
+      this.buttonCall.attr('disabled', false);
+      this.buttonShow.attr('disabled', false);
+      this.remoteCamera.attr('poster', 'images/webrtc.png');
+      this.spinnerManager.hide();
+      if (this.standalone) {
         this.fieldContainer.hide();
-        MashupPlatform.wiring.pushEvent('call-status', 'UNREGISTERED');
-        break;
-      default:
-        return this;
+      }
+      MashupPlatform.wiring.pushEvent('call-status', 'BUSY_LINE');
+      break;
+    case state.ANSWERING:
+      this.banner.empty().text('Answering . . .');
+      MashupPlatform.wiring.pushEvent('call-status', 'ANSWERING');
+      break;
+    case state.CALLING:
+      if (newState !== state.ANSWERING) {
+      this.banner.empty().text('Calling . . .');
+        MashupPlatform.wiring.pushEvent('call-status', 'CALLING');
+      }
+      this.buttonCall
+        .removeClass('btn-success')
+        .addClass('btn-danger');
+      this.iconPhone
+        .removeClass('fa-phone')
+        .addClass('fa-tty');
+      this.remoteCamera.attr('poster', 'images/transparent-1px.png');
+      this.spinnerManager.show();
+      if (this.standalone) {
+        this.fieldContainer.hide();
+      }
+      break;
+    case state.REGISTERED:
+      this.buttonCall.attr('disabled', false);
+      this.buttonShow.removeClass('active').attr('disabled', true);
+      this.localCamera.hide();
+      this.remoteCamera.attr('src', '');
+      this.localCamera.attr('src', '');
+      this.remoteCamera.attr('poster', 'images/webrtc.png');
+      this.spinnerManager.hide();
+      this.buttonCall
+        .removeClass('btn-danger')
+        .addClass('btn-success');
+      this.iconPhone
+        .removeClass('fa-tty')
+        .addClass('fa-phone');
+      if (this.standalone) {
+        this.fieldContainer.show();
+      } else {
+        this.fieldContainer.hide();
+      }
+      MashupPlatform.wiring.pushEvent('call-status', 'REGISTERED');
+      break;
+    case state.UNREGISTERED:
+      this.buttonAccept.attr('disabled', true);
+      this.buttonCall.attr('disabled', true);
+      this.buttonShow.attr('disabled', true);
+      this.localCamera.hide();
+      this.fieldContainer.hide();
+      MashupPlatform.wiring.pushEvent('call-status', 'UNREGISTERED');
+      break;
+    default:
+      return this;
     }
 
     this.currentState = newState;
@@ -448,6 +451,8 @@ var Widget = (function () {
 })();
 
 $(function () {
+
+  "use strict";
 
   var wgt = new Widget('body', '#incoming-modal');
 
