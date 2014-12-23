@@ -1,7 +1,7 @@
 {
   "vendor": "CoNWeT",
   "name": "widget-one2one-call",
-  "version": "1.0.9",
+  "version": "1.1.0",
   "description": "A web widget that allows join a one-2-one video call, supported by Kurento Media Server.",
   "repository": {
     "type": "git",
