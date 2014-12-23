@@ -65,7 +65,7 @@ var Widget = (function () {
       });
 
     this.field = $('<input>').addClass('form-control')
-      .attr('type', 'text').attr('placeholder', 'Username/Workspace');
+      .attr('type', 'text').attr('placeholder', 'Username');
     this.fieldContainer = $('<div>').addClass('standalone')
       .append(this.field);
 
@@ -249,10 +249,7 @@ var Widget = (function () {
 
     'loadPreferences': function loadPreferences() {
       this.serverURL = MashupPlatform.prefs.get('server-url');
-
-      this.username = MashupPlatform.context.get('username') +
-        '/' + MashupPlatform.mashup.context.get('name');
-
+      this.username = MashupPlatform.context.get('username');
       this.standalone = MashupPlatform.prefs.get('stand-alone');
 
       this.peername = '';
