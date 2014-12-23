@@ -4,7 +4,7 @@
         <title>Kurento - One2One</title>
         <authors>Jaime Pajuelo &lt;jpajuelo@conwet.com&gt;</authors>
         <email>wirecloud@conwet.com</email>
-        <image>images/webrtc.png</image>
+        <image>images/catalogue.png</image>
         <smartphoneimage>images/webrtc.png</smartphoneimage>
         <description>A widget for making videoconferences using Kurento</description>
         <homepage>https://github.com/wirecloud-fiware/widget-one2one-call</homepage>
