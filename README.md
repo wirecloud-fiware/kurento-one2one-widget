@@ -1,27 +1,24 @@
-Web Widget - One-2-One Video Call
-=================================
+Kurento One2One widget
+======================
 
-A simple web widget that allows join a video call. This video call is
-one-2-one, that is, users A and B can call each other to join a video
-conference.
+The kurento One2One widget is a WireCloud widget usable for adding
+videoconference support to your dashboards in a simple way.
 
-To do this possible, this widget uses a media service with full WebRTC support
-supplied by [Kurento](http://www.kurento.org/). Furthermore, this widget
-provides input and output endpoints which are compatible under WireCloud Platform.
+This videoconference support is based on the [one2one
+service](https://github.com/Kurento/kurento-tutorial-node/tree/develop/kurento-one2one-call)
+provided by the kurento community. You will need to deploy this service before
+using this widget.
 
-Table of Contents
------------------
+Latest version of this widget is always [provided in FIWARE
+Lab](https://store.lab.fi-ware.org/search/keyword/KurentoStarterKit) where you
+can make use of it on the [Mashup portal](https://mashup.lab.fi-ware.org).
 
-- [Getting Started](#getting-started)
-- [Settings and Usage](#settings-and-usage)
-- [Release History](#release-history)
-- [Copyright and License](#copyright-and-license)
+Build
+-----
 
-Getting Started
----------------
-
-Be sure to have installed [Node.js](http://node.js) and
-[Bower](http://bower.io) in your system:
+Be sure to have installed [Node.js](http://node.js) and [Bower](http://bower.io)
+in your system. For example, you can install it on Ubunutu and Debian running the
+following commands:
 
 ```bash
 curl -sL https://deb.nodesource.com/setup | sudo bash -
@@ -44,14 +41,12 @@ grunt
 If everything goes well, you will find a wgt file in the `dist` folder.
 
 Settings and Usage
------
+------------------
 
 ### Preferences
 
-- `Server URL` - Type String. URL of Media Server with WebRTC support.
-
-- `Standalone` - Type Boolean. Allows choose the user for calling. Default is
-  True.
+* `Server URL` - URL of the one 2 one server.
+* `Standalone` - Allows choose the user for calling. Default is True.
 
 ### Wiring
 
@@ -72,15 +67,7 @@ Settings and Usage
   the status is changed. The status list is the following: UNREGISTERED -
   REGISTERED - CALLING - BUSY_LINE.
 
-### Functionalities
-
-##### Automatic Registration 
-
-When the widget is loaded, you will be automatically registered on the given
-Media Server.
-
-> **Note**: in the latest version, you will be registered as
-> `username/workspace_name`.
+### Usage
 
 ##### Call/Hang Up an User
 
@@ -101,11 +88,6 @@ webcam.
 
 Finally, if an user wants to stablish a call, the widget displays a sliding
 modal which allows to you choose to answer the incoming call or decline it.
-
-Release History
---------
-
-- 2014-12-9   v1.0.9   First official release for WireCloud.
 
 Copyright and License
 ---------------------
