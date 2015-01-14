@@ -7,8 +7,8 @@ provided by the kurento community. You will need to deploy this service before
 using this widget.
 
 Latest version of this widget is always [provided in FIWARE
-Lab](https://store.lab.fi-ware.org/search/keyword/KurentoStarterKit) where you
-can make use of it on the [Mashup portal](https://mashup.lab.fi-ware.org).
+Lab](https://store.lab.fiware.org/search/keyword/KurentoStarterKit) where you
+can make use of it on the [Mashup portal](https://mashup.lab.fiware.org).
 
 ## Preferences
 
