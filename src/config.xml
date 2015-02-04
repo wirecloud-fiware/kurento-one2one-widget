@@ -9,6 +9,7 @@
         <description>A widget for making videoconferences using Kurento</description>
         <homepage>https://github.com/wirecloud-fiware/widget-one2one-call</homepage>
         <doc>doc/index.md</doc>
+	<changelog>doc/changelog.md</changelog>
     </details>
     <preferences>
         <preference name="server-url" label="Server URL" description="URL of one2one server" type="text" default="ws://130.206.81.33:8080/call" />
