@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-/*global $, kurentoUtils, MashupPlatform*/
+/*global $, kurentoUtils */
 
 var Widget = (function () {
 

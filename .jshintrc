@@ -2,17 +2,17 @@
     "browser": true,
     "debug": false,
     "devel": false,
-    "curly": true,
     "eqnull": true,
     "forin": false,
     "undef": true,
     "unused": "vars",
-    "indent": 4,
     "prototypejs": false,
+    "globalstrict": false,
     "strict": true,
-    "trailing": true,
-    "white": true,
+    "white": false,
+    "quotmark": false,
     "globals": {
-        "URL": false
+        "URL": false,
+        "MashupPlatform": true
     }
 }
