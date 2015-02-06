@@ -22,7 +22,8 @@ following commands:
 
 ```bash
 curl -sL https://deb.nodesource.com/setup | sudo bash -
-sudo apt-get install -y nodejs
+sudo apt-get install nodejs
+sudo apt-get install npm
 sudo npm install -g bower
 ```
 
@@ -32,7 +33,13 @@ Install other npm dependencies by running:
 npm install
 ```
 
-And build the widget using grunt:
+For build the widget you need download grunt:
+
+```bash
+sudo npm install -g grunt-cli
+```
+
+And now, you can use grunt:
 
 ```bash
 grunt
