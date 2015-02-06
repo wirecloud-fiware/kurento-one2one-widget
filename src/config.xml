@@ -1,8 +1,9 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<widget xmlns="http://wirecloud.conwet.fi.upm.es/ns/macdescription/1" vendor="CoNWeT" name="kurento-one2one" version="1.1.0">
+<widget xmlns="http://wirecloud.conwet.fi.upm.es/ns/macdescription/1" vendor="CoNWeT" name="kurento-one2one" version="1.1.1">
     <details>
         <title>Kurento - One2One</title>
-        <authors>Jaime Pajuelo &lt;jpajuelo@conwet.com&gt;</authors>
+        <authors>Jaime Pajuelo &lt;jpajuelo@conwet.com&gt;, Braulio Grana &lt;bgrana@conwet.com&gt;, Iris Muñoz &lt;imunoz@conwet.com&gt;</authors>
+        <contributors>Alvaro Arranz &lt;aaranz@conwet.com&gt;</contributors>
         <email>wirecloud@conwet.com</email>
         <image>images/catalogue.png</image>
         <smartphoneimage>images/webrtc.png</smartphoneimage>
@@ -16,6 +17,7 @@
         <preference name="stand-alone" label="Standalone" description="Allow choose the user for calling" type="boolean" default="true" />
     </preferences>
     <wiring>
+        <inputendpoint name="user-id" type="text" label="User Id" description="Receive a user id with no action" friendcode="participant-name" />
         <inputendpoint name="call-user" type="text" label="Call user" description="Calls the user received" friendcode="participant-name" />
         <inputendpoint name="hangup-user" type="text" label="Hang up user" description="Hang up the user received" friendcode="participant-name" />
         <outputendpoint name="call-status" type="text" label="Call status" description="Sends the current status of the call" friendcode="call-status" />

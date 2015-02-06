@@ -106,6 +106,8 @@ var Widget = (function () {
                             sdpOffer: sdp
                         });
                         showResponse.call(this, 'info', 'The call was connected successfully');
+                        this.peername = this.callername;
+                        updateState.call(this, state.BUSY_LINE);
                     }.bind(this),
                     function (error) {
                         MashupPlatform.widget.log('TODO');
@@ -116,12 +118,8 @@ var Widget = (function () {
         },
 
         'callUser': function callUser() {
-            if (this.currentState !== state.REGISTERED) {
-                return this;
-            }
 
-            if (!this.peername.length) {
-                showResponse.call(this, 'warning', 'No user for calling');
+            if (this.currentState !== state.ENABLED_CALL) {
                 return this;
             }
 
@@ -181,8 +179,8 @@ var Widget = (function () {
                 showResponse.call(this, 'warning', "User <strong>" + this.peername + "</strong> ended the call");
             }
 
-            updateState.call(this, state.REGISTERED);
-            this.dispose();
+            updateState.call(this, state.ENABLED_CALL); // Cuando estas en una llamada y cuelgas (a que estado le mandas y si los botones están bien)
+            this.dispose(); // Corto comunicación con Servidor
 
             return this;
         },
@@ -208,7 +206,7 @@ var Widget = (function () {
                 } else {
                     showResponse.call(this, 'warning', "User <strong>" + this.peername + "</strong> is not registered");
                 }
-                updateState.call(this, state.REGISTERED);
+                updateState.call(this, state.ENABLED_CALL);
             }
 
             return this;
@@ -224,7 +222,7 @@ var Widget = (function () {
                 });
             } else {
                 this.callAccepted = false;
-                this.callername = data.from;
+                this.callername = data.from; // callername es la persona que quiere establecer una llamada contigo (será el futuro peername)
 
                 $('#incoming-user').text(this.callername);
                 this.incomingCallModal.modal('show');
@@ -237,7 +235,11 @@ var Widget = (function () {
             switch (data.response) {
             case 'accepted':
                 showResponse.call(this, 'info', 'You were registered successfully');
-                updateState.call(this, state.REGISTERED);
+                if (this.peername && this.peername.length) {
+                    updateState.call(this, state.ENABLED_CALL);
+                } else {
+                    updateState.call(this, state.REGISTERED);
+                }
                 break;
             default:
                 showResponse.call(this, 'warning', 'User <strong>' + this.username + '</strong> is already in use.');
@@ -270,6 +272,22 @@ var Widget = (function () {
             this.server = new WebSocket(this.serverURL);
             this.server.onopen = this.registerUser.bind(this);
             this.server.onmessage = handleMessage.bind(this);
+
+            return this;
+        },
+
+        'registerPeername': function registerPeername(peername) {
+            if (this.currentState !== state.REGISTERED && this.currentState !== state.ENABLED_CALL) {
+                return this;
+            }
+
+            if (typeof peername !== 'string' || !peername.length) {
+                showResponse.call(this, 'warning', "There is not any name to call"); // No hay ningun nombre para llamar
+            } else {
+                this.peername = peername;
+                updateState.call(this, state.ENABLED_CALL);
+                showResponse.call(this, 'info', "Make a call <strong>" + this.peername + "</strong> is enabled"); // Ya puedes realizar una llamada
+            }
 
             return this;
         },
@@ -341,6 +359,9 @@ var Widget = (function () {
 
         this.field.on('blur', function (event) {
             this.peername = this.field.val();
+            if (this.peername.length) { // Comprobamos que peername no está vacío
+                updateState.call(this, state.ENABLED_CALL);
+            }
         }.bind(this));
 
         this.incomingCallModal.find('#accept-call').on('click', function (event) {
@@ -370,7 +391,7 @@ var Widget = (function () {
         return this;
     };
 
-    var state = {'BUSY_LINE': 0, 'CALLING': 1, 'REGISTERED': 2, 'UNREGISTERED': 3};
+    var state = {'BUSY_LINE': 0, 'CALLING': 1, 'ANSWERING': 2, 'REGISTERED': 3, 'UNREGISTERED': 4, 'ENABLED_CALL': 5};
 
     var updateState = function updateState(newState) {
         switch (newState) {
@@ -387,7 +408,7 @@ var Widget = (function () {
         case state.ANSWERING:
             this.banner.empty().text('Answering . . .');
             MashupPlatform.wiring.pushEvent('call-status', 'ANSWERING');
-            break;
+            /* falls through */
         case state.CALLING:
             if (newState !== state.ANSWERING) {
                 this.banner.empty().text('Calling . . .');
@@ -406,7 +427,6 @@ var Widget = (function () {
             }
             break;
         case state.REGISTERED:
-            this.buttonCall.attr('disabled', false);
             this.buttonShow.removeClass('active').attr('disabled', true);
             this.localCamera.hide();
             this.remoteCamera.attr('src', '');
@@ -421,8 +441,10 @@ var Widget = (function () {
                 .addClass('fa-phone');
             if (this.standalone) {
                 this.fieldContainer.show();
+                this.buttonCall.attr('disabled', false);
             } else {
                 this.fieldContainer.hide();
+                this.buttonCall.attr('disabled', true);
             }
             MashupPlatform.wiring.pushEvent('call-status', 'REGISTERED');
             break;
@@ -433,6 +455,27 @@ var Widget = (function () {
             this.localCamera.hide();
             this.fieldContainer.hide();
             MashupPlatform.wiring.pushEvent('call-status', 'UNREGISTERED');
+            break;
+        case state.ENABLED_CALL:
+            this.buttonCall.attr('disabled', false);
+            this.buttonShow.removeClass('active').attr('disabled', true);
+            this.localCamera.hide();
+            this.remoteCamera.attr('src', '');
+            this.localCamera.attr('src', '');
+            this.remoteCamera.attr('poster', 'images/webrtc.png');
+            this.spinnerManager.hide();
+            this.buttonCall
+                .removeClass('btn-danger')
+                .addClass('btn-success');
+            this.iconPhone
+                .removeClass('fa-tty')
+                .addClass('fa-phone');
+            if (!this.standalone) {
+                this.fieldContainer.hide();
+            } else {
+                this.fieldContainer.show();
+            }
+            MashupPlatform.wiring.pushEvent('call-status', 'ENABLED_CALL');
             break;
         default:
             return this;
@@ -455,7 +498,11 @@ $(function () {
 
     MashupPlatform.prefs.registerCallback(function () {
         wgt.loadPreferences();
-        wgt.reconnect();
+        wgt.reconnect(); // mejor control a la hora de recargar informacion
+    });
+
+    MashupPlatform.wiring.registerCallback('user-id', function (friendName) {
+        wgt.registerPeername(friendName);
     });
 
     MashupPlatform.wiring.registerCallback('call-user', function (friendName) {
