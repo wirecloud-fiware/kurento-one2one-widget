@@ -84,7 +84,7 @@ module.exports = function (grunt) {
             },
             all: {
                 files: {
-                    src: ['src/js/**/*', 'src/test/**/*', '!src/test/fixtures/']
+                    src: ['src/js/**/*', '!src/test/fixtures/']
                 }
             },
             grunt: {
@@ -95,17 +95,53 @@ module.exports = function (grunt) {
                     src: ['Gruntfile.js']
                 }
             }
-        }
+        },
+
+        jasmine: {
+          test: {
+            src: ['src/js/*.js'],
+            options: {
+              specs: 'src/test/js/*Spec.js',
+              helpers: ['src/test/helpers/*.js'],
+              vendor: ['bower_components/jquery/dist/jquery.js',
+                'bower_components/adapter.js/src/adapter.js',
+                'bower_components/kurento-utils/js/kurento-utils.js',
+                'bower_components/bootstrap/dist/js/bootstrap.js',
+                'bower_components/mock-socket/dist/mock-socket.js',
+                'src/test/vendor/*.js']
+            }
+          },
+
+          coverage: {
+            src: '<%= jasmine.test.src %>',
+            options: {
+              helpers: '<%= jasmine.test.options.helpers %>',
+              specs: '<%= jasmine.test.options.specs %>',
+              vendor: '<%= jasmine.test.options.vendor %>',
+              template: require('grunt-template-jasmine-istanbul'),
+              templateOptions : {
+                coverage: 'build/coverage/json/coverage.json',
+                report: [
+                  {type: 'html', options: {dir: 'build/coverage/html'}},
+                  {type: 'cobertura', options: {dir: 'build/coverage/xml'}},
+                  {type: 'text-summary'}
+                ]
+              }
+            }
+          }
+        },
 
     });
 
     grunt.loadNpmTasks('grunt-bower-task');
     grunt.loadNpmTasks('grunt-contrib-compress');
+    grunt.loadNpmTasks('grunt-contrib-jasmine');
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks("grunt-jscs");
     grunt.loadNpmTasks('grunt-text-replace');
 
+    grunt.registerTask('test', ['jasmine:coverage']);
     grunt.registerTask('default', [
         'jshint:grunt',
         'jshint',

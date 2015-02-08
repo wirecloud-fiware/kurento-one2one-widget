@@ -1,28 +1,31 @@
 {
-    "name": "widget-one2one-call",
-    "dependencies": {
-        "bootstrap": "~3.2.0",
-        "fontawesome": "~4.2.0",
-        "adapter.js": "*",
-        "kurento-utils": "~5.0.4"
-	},
-    "exportsOverride": {
-        "adapter.js": {
-            "js": "src/js/adapter.js"
-        },
-        "jquery": {
-            "js": "dist/jquery.min.js"
-        },
-        "bootstrap": {
-            "css": "dist/css/bootstrap.min.css",
-            "js": "dist/js/bootstrap.min.js"
-        },
-        "fontawesome": {
-            "css": "css/font-awesome.min.css",
-            "fonts": "fonts/*"
-        },
-        "kurento-utils": {
-            "js": "js/kurento-utils.min.js"
-        }
+  "name": "widget-one2one-call",
+  "dependencies": {
+    "bootstrap": "~3.2.0",
+    "fontawesome": "~4.2.0",
+    "adapter.js": "*",
+    "kurento-utils": "~5.0.4"
+  },
+  "exportsOverride": {
+    "adapter.js": {
+      "js": "src/js/adapter.js"
+    },
+    "jquery": {
+      "js": "dist/jquery.min.js"
+    },
+    "bootstrap": {
+      "css": "dist/css/bootstrap.min.css",
+      "js": "dist/js/bootstrap.min.js"
+    },
+    "fontawesome": {
+      "css": "css/font-awesome.min.css",
+      "fonts": "fonts/*"
+    },
+    "kurento-utils": {
+      "js": "js/kurento-utils.min.js"
     }
+  },
+  "devDependencies": {
+    "mock-socket": "~0.0.8"
+  }
 }
