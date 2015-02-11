@@ -84,7 +84,7 @@ module.exports = function (grunt) {
             },
             all: {
                 files: {
-                    src: ['src/js/**/*', '!src/test/fixtures/']
+                    src: ['src/js/**/*.js']
                 }
             },
             grunt: {
@@ -93,6 +93,14 @@ module.exports = function (grunt) {
                 },
                 files: {
                     src: ['Gruntfile.js']
+                }
+            },
+            test: {
+                options: {
+                    jshintrc: '.jshintrc-jasmine'
+                },
+                files: {
+                    src: ['src/test/**/*.js', '!src/test/fixtures/']
                 }
             }
         },
@@ -141,10 +149,10 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks("grunt-jscs");
     grunt.loadNpmTasks('grunt-text-replace');
 
-    grunt.registerTask('test', ['jasmine:coverage']);
     grunt.registerTask('default', [
         'jshint:grunt',
         'jshint',
+        'jasmine:coverage',
         'jscs',
         'bower:install',
         'replace:version',

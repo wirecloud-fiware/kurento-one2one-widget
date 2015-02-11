@@ -22,17 +22,17 @@ describe("Test One2One widget", function () {
 		widget = new Widget('body', '#incoming-modal');
 
 		expect(widget.serverURL).toBe(prefsGetValues['server-url']);
-		expect(widget.username).toBe(contextGetValues['username']);
+		expect(widget.username).toBe(contextGetValues.username);
 		expect(widget.standalone).toBe(prefsGetValues['stand-alone']);
 
 		prefsGetValues['server-url'] = 'ws://url2';
 		prefsGetValues['stand-alone'] = true;
-		contextGetValues['username'] = 'user2';
+		contextGetValues.username = 'user2';
 
 		widget.loadPreferences();
 
 		expect(widget.serverURL).toBe(prefsGetValues['server-url']);
-		expect(widget.username).toBe(contextGetValues['username']);
+		expect(widget.username).toBe(contextGetValues.username);
 		expect(widget.standalone).toBe(prefsGetValues['stand-alone']);
 	});
 });
