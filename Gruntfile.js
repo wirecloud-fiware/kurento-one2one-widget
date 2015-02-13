@@ -53,6 +53,13 @@ module.exports = function (grunt) {
                             'index.html',
                             'config.xml'
                         ]
+                    },
+                    {
+                        expand: true,
+                        cwd: '.',
+                        src: [
+                            'LICENSE'
+                        ]
                     }
                 ]
             }
