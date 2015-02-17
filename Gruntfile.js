@@ -122,6 +122,7 @@ module.exports = function (grunt) {
                 'bower_components/adapter.js/src/adapter.js',
                 'bower_components/kurento-utils/js/kurento-utils.js',
                 'bower_components/bootstrap/dist/js/bootstrap.js',
+                'node_modules/jasmine-jquery/lib/jasmine-jquery.js',
                 'bower_components/mock-socket/dist/mock-socket.js',
                 'src/test/vendor/*.js']
             }

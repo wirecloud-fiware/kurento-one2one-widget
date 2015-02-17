@@ -75,13 +75,35 @@ var Widget = (function () {
         bottomMenu = $('<div>').addClass('bottom-menu')
             .append(this.fieldContainer, buttonList).hide();
         cameraContainer = $(containerSelector)
-            .append(this.remoteCamera, this.localCamera, this.alertManager,this.spinnerManager, bottomMenu);
+            .append(this.remoteCamera, this.localCamera, this.alertManager, this.spinnerManager, bottomMenu);
 
         initHandlerGroup.call(this, cameraContainer, bottomMenu);
         updateState.call(this, state.UNREGISTERED);
 
         this.loadPreferences();
         this.reconnect();
+
+        MashupPlatform.prefs.registerCallback(function () {
+            this.loadPreferences();
+            this.reconnect();
+        }.bind(this));
+
+        MashupPlatform.wiring.registerCallback('user-id', function (friendName) {
+            this.registerPeername(friendName);
+        }.bind(this));
+
+        MashupPlatform.wiring.registerCallback('call-user', function (friendName) {
+            this.peername = friendName;
+            this.callUser();
+        }.bind(this));
+
+        MashupPlatform.wiring.registerCallback('hangup-user', function (friendName) {
+            if (typeof friendName !== 'string' || !friendName.length) {
+                return;
+            }
+
+            this.endCall(friendName);
+        }.bind(this));
     };
 
     Widget.prototype = {
@@ -118,7 +140,6 @@ var Widget = (function () {
         },
 
         'callUser': function callUser() {
-
             if (this.currentState !== state.ENABLED_CALL) {
                 return this;
             }
@@ -179,8 +200,8 @@ var Widget = (function () {
                 showResponse.call(this, 'warning', "User <strong>" + this.peername + "</strong> ended the call");
             }
 
-            updateState.call(this, state.ENABLED_CALL); // Cuando estas en una llamada y cuelgas (a que estado le mandas y si los botones están bien)
-            this.dispose(); // Corto comunicación con Servidor
+            updateState.call(this, state.ENABLED_CALL);
+            this.dispose();
 
             return this;
         },
@@ -222,7 +243,7 @@ var Widget = (function () {
                 });
             } else {
                 this.callAccepted = false;
-                this.callername = data.from; // callername es la persona que quiere establecer una llamada contigo (será el futuro peername)
+                this.callername = data.from;
 
                 $('#incoming-user').text(this.callername);
                 this.incomingCallModal.modal('show');
@@ -282,11 +303,11 @@ var Widget = (function () {
             }
 
             if (typeof peername !== 'string' || !peername.length) {
-                showResponse.call(this, 'warning', "There is not any name to call"); // No hay ningun nombre para llamar
+                showResponse.call(this, 'warning', "There is not any name to call");
             } else {
                 this.peername = peername;
                 updateState.call(this, state.ENABLED_CALL);
-                showResponse.call(this, 'info', "Make a call <strong>" + this.peername + "</strong> is enabled"); // Ya puedes realizar una llamada
+                showResponse.call(this, 'info', "Make a call with <strong>" + this.peername + "</strong> is enabled");
             }
 
             return this;
@@ -359,7 +380,7 @@ var Widget = (function () {
 
         this.field.on('blur', function (event) {
             this.peername = this.field.val();
-            if (this.peername.length) { // Comprobamos que peername no está vacío
+            if (this.peername.length) {
                 updateState.call(this, state.ENABLED_CALL);
             }
         }.bind(this));
@@ -490,33 +511,12 @@ var Widget = (function () {
 
 })();
 
+
 $(function () {
 
     "use strict";
 
     var wgt = new Widget('body', '#incoming-modal');
-
-    MashupPlatform.prefs.registerCallback(function () {
-        wgt.loadPreferences();
-        wgt.reconnect(); // mejor control a la hora de recargar informacion
-    });
-
-    MashupPlatform.wiring.registerCallback('user-id', function (friendName) {
-        wgt.registerPeername(friendName);
-    });
-
-    MashupPlatform.wiring.registerCallback('call-user', function (friendName) {
-        wgt.peername = friendName;
-        wgt.callUser();
-    });
-
-    MashupPlatform.wiring.registerCallback('hangup-user', function (friendName) {
-        if (typeof friendName !== 'string' || !friendName.length) {
-            return;
-        }
-
-        wgt.endCall(friendName);
-    });
 
     $(window).on('beforeunload', function () {
         wgt.close();
