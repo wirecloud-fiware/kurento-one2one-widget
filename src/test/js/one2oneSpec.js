@@ -32,8 +32,19 @@
         $('body > *:not(' + dependencyList.join(', ') + ')').remove();
     };
 
+    var getWiringCallback = function getWiringCallback(endpoint) {
+        var calls = MashupPlatform.wiring.registerCallback.calls;
+        var count = calls.count();
+        for (var i = count - 1; i >= 0; i--) {
+            var args = calls.argsFor(i);
+            if (args[0] === endpoint) {
+                return args[1];
+            }
+        }
+        return null;
+    };
 
-    describe("Test for widget preferences", function () {
+    describe("Kurento one2one widget", function () {
 
         var context = {
             'username': 'user1'
@@ -41,13 +52,19 @@
 
         beforeEach(function () {
             loadFixtures('index.html');
+            MashupPlatform.prefs.registerCallback.calls.reset();
+            MashupPlatform.wiring.registerCallback.calls.reset();
         });
 
-        it("loads correctly the preference stand-alone", function () {
+        afterEach(function () {
+            clearDocument();
+        });
+
+        it("loads correctly when configured on stand-alone mode", function (done) {
             var preferences, widget;
 
             preferences = {
-                'server-url': 'ws://url1',
+                'server-url': 'ws://kurento.example.com',
                 'stand-alone': false
             };
 
@@ -58,9 +75,14 @@
 
             widget = new Widget('#jasmine-fixtures', '#incoming-modal');
 
-            expect(widget.serverURL).toBe(preferences['server-url']);
-            expect(widget.standalone).toBe(preferences['stand-alone']);
-            expect(widget.fieldContainer.is(":visible")).toBeFalsy();
+            setInterval(function () {
+                if (widget.currentState === 3 /*REGISTERED*/) {
+                    expect(widget.serverURL).toBe(preferences['server-url']);
+                    expect(widget.standalone).toBe(preferences['stand-alone']);
+                    expect(widget.fieldContainer.is(":visible")).toBeFalsy();
+                    done();
+                }
+            }, 200);
         });
 
         it("registers a preference callback", function () {
@@ -68,16 +90,31 @@
 
             widget = new Widget('#jasmine-fixtures', '#incoming-modal');
 
-            expect(MashupPlatform.prefs.registerCallback).toHaveBeenCalled();
-            var args = MashupPlatform.prefs.registerCallback.calls.mostRecent().args;
-            expect(args.length).toBe(1);
-            expect(args[0]).not.toBe(null);
+            expect(MashupPlatform.prefs.registerCallback).toHaveBeenCalledWith(jasmine.any(Function));
         });
 
-        afterEach(function () {
-            clearDocument();
+        it("registers a callback for the user-id endpoint", function () {
+            var widget;
+
+            widget = new Widget('#jasmine-fixtures', '#incoming-modal');
+
+            expect(MashupPlatform.wiring.registerCallback).toHaveBeenCalledWith("user-id", jasmine.any(Function));
         });
 
+        it("handles correctly events comming from the user-id endpoint once the user is registered", function (done) {
+            var widget;
+
+            widget = new Widget('#jasmine-fixtures', '#incoming-modal');
+
+            setInterval(function () {
+                if (widget.currentState === 3 /*REGISTERED*/) {
+                    var callback = getWiringCallback("user-id");
+                    callback("Pedro");
+                    expect(widget.currentState).toBe(5 /*ENABLED_CALL*/);
+                    done();
+                }
+            }, 200);
+        });
     });
 
 })();
