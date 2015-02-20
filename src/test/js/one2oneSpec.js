@@ -115,6 +115,31 @@
                 }
             }, 200);
         });
+
+        it("disables correctly the call button when stand-alone is inactive", function (done) {
+           var preferences, widget;
+
+            preferences = {
+                'server-url': 'ws://kurento.example.com',
+                'stand-alone': false
+            };
+
+            MashupPlatform.setStrategy(new MyStrategy(), {
+                "MashupPlatform.context.get": context,
+                "MashupPlatform.prefs.get": preferences
+            });
+
+            widget = new Widget('#jasmine-fixtures', '#incoming-modal');
+
+                setInterval(function() {
+                    if (widget.currentState === 3 /*REGISTERED*/) {
+                        expect(widget.standalone).toBe(preferences['stand-alone']);
+                        expect(widget.buttonCall.attr('disabled')).toEqual("disabled");
+                        done();
+                    }
+                }, 200);
+        });
+
     });
 
 })();
