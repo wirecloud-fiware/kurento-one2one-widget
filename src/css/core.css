@@ -122,3 +122,7 @@ body {
     height: auto;
     padding: 4px 6px;
 }
+
+.fa-hangup-phone {
+    transform: rotate(134deg);
+}

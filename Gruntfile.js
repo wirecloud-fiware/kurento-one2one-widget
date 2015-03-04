@@ -120,7 +120,6 @@ module.exports = function (grunt) {
               helpers: ['src/test/helpers/*.js'],
               vendor: ['bower_components/jquery/dist/jquery.js',
                 'bower_components/adapter.js/src/adapter.js',
-                'bower_components/kurento-utils/js/kurento-utils.js',
                 'bower_components/bootstrap/dist/js/bootstrap.js',
                 'node_modules/jasmine-jquery/lib/jasmine-jquery.js',
                 'bower_components/mock-socket/dist/mock-socket.js',

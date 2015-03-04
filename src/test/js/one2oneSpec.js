@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-/*global $*/
+/*global $, kurentoUtils, test_methods*/
 
 (function () {
 
@@ -49,18 +49,24 @@
         var context = {
             'username': 'user1'
         };
+        var async_interval = null;
 
         beforeEach(function () {
             loadFixtures('index.html');
             MashupPlatform.prefs.registerCallback.calls.reset();
             MashupPlatform.wiring.registerCallback.calls.reset();
+            kurentoUtils.withErrors = false;
         });
 
         afterEach(function () {
             clearDocument();
+            if (async_interval != null) {
+                clearTimeout(async_interval);
+                async_interval = null;
+            }
         });
 
-        it("loads correctly when configured on stand-alone mode", function (done) {
+        it("loads correctly when configured on standalone mode", function (done) {
             var preferences, widget;
 
             preferences = {
@@ -74,9 +80,10 @@
             });
 
             widget = new Widget('#jasmine-fixtures', '#incoming-modal');
+            widget.reload();
 
             setInterval(function () {
-                if (widget.currentState === 3 /*REGISTERED*/) {
+                if (widget.currentState === 3) { // REGISTERED
                     expect(widget.serverURL).toBe(preferences['server-url']);
                     expect(widget.standalone).toBe(preferences['stand-alone']);
                     expect(widget.fieldContainer.is(":visible")).toBeFalsy();
@@ -105,18 +112,66 @@
             var widget;
 
             widget = new Widget('#jasmine-fixtures', '#incoming-modal');
+            widget.reload();
 
-            setInterval(function () {
-                if (widget.currentState === 3 /*REGISTERED*/) {
+            async_interval = setInterval(function () {
+                if (widget.currentState === 3) { // REGISTERED
                     var callback = getWiringCallback("user-id");
                     callback("Pedro");
-                    expect(widget.currentState).toBe(5 /*ENABLED_CALL*/);
+                    expect(widget.currentState).toBe(5); // ENABLED_CALL
                     done();
                 }
             }, 200);
         });
 
-        it("disables correctly the call button when stand-alone is inactive", function (done) {
+        it("handles correctly events comming from the user-id endpoint once the user is not standalone", function (done) {
+            var preferences, widget;
+
+            preferences = {
+                'server-url': 'ws://kurento.example.com',
+                'stand-alone': false
+            };
+
+            MashupPlatform.setStrategy(new MyStrategy(), {
+                "MashupPlatform.context.get": context,
+                "MashupPlatform.prefs.get": preferences
+            });
+
+            widget = new Widget('#jasmine-fixtures', '#incoming-modal');
+            widget.reload();
+
+            async_interval = setInterval(function () {
+                if (widget.currentState === 3) { // REGISTERED
+                    var callback = getWiringCallback("user-id");
+                    callback("Pedro");
+                    expect(widget.currentState).toBe(5); // ENABLED_CALL
+                    done();
+                }
+            }, 200);
+        });
+
+        it("checks that can't register a username already used", function () {
+            var preferences, widget;
+
+            preferences = {
+                'server-url': 'ws://kurento.example.com',
+                'stand-alone': true
+            };
+
+            MashupPlatform.setStrategy(new MyStrategy(), {
+                "MashupPlatform.context.get": {
+                    'username': "alreadyregistereduser"
+                },
+                "MashupPlatform.prefs.get": preferences
+            });
+
+            widget = new Widget('#jasmine-fixtures', '#incoming-modal');
+
+            expect(widget.currentState).toBe(4); // UNREGISTERED
+
+        });
+
+        it("disables correctly the call button when standalone is inactive", function (done) {
            var preferences, widget;
 
             preferences = {
@@ -130,16 +185,66 @@
             });
 
             widget = new Widget('#jasmine-fixtures', '#incoming-modal');
+            widget.reload();
 
-                setInterval(function() {
-                    if (widget.currentState === 3 /*REGISTERED*/) {
-                        expect(widget.standalone).toBe(preferences['stand-alone']);
-                        expect(widget.buttonCall.attr('disabled')).toEqual("disabled");
-                        done();
-                    }
-                }, 200);
+            async_interval = setInterval(function() {
+                if (widget.currentState === 3) { // REGISTERED
+                    expect(widget.standalone).toBe(preferences['stand-alone']);
+                    expect(widget.buttonCall.attr('disabled')).toEqual("disabled");
+                    done();
+                }
+            }, 200);
+        });
+
+        it("handles correctly transition between buttons in an incoming call", function (done) {
+            var preferences, widget;
+
+            preferences = {
+                'server-url': 'ws://kurento.example.com',
+                'stand-alone': false
+            };
+
+            MashupPlatform.setStrategy(new MyStrategy(), {
+                "MashupPlatform.context.get": context,
+                "MashupPlatform.prefs.get": preferences
+            });
+
+            widget = new Widget('#jasmine-fixtures', '#incoming-modal');
+            widget.reload();
+
+            test_methods.peerRequest_onIncomingCall.call(widget, {'from': "test1"});
+            expect(widget.callername).toEqual("test1");
+
+            widget.callAccepted = true;
+            widget.incomingCallModal.modal('hide');
+
+            async_interval = setInterval(function() {
+                if (widget.currentState === 0) { //BUSY_LINE
+                    expect(widget.buttonCall.hasClass('btn-danger')).toBe(true);
+                    done();
+                }
+            }, 200);
+        });
+
+        it("validates correctly server urls (empty url)", function () {
+            expect(test_methods.checkValidURL("")).toBeFalsy();
+        });
+
+        /*it("validates correctly server urls (bad scheme definition)", function () {
+            expect(test_methods.checkValidURL("ws:adfasd")).toBeFalsy();
+        });*/
+
+        it("validates correctly server urls (valid ws url)", function () {
+            expect(test_methods.checkValidURL("ws://example.com")).toBeTruthy();
+        });
+
+        it("validates correctly server urls (valid wss url)", function () {
+            expect(test_methods.checkValidURL("wss://example.com")).toBeTruthy();
+        });
+
+        it("validates correctly server urls (invalid http url)", function () {
+            expect(test_methods.checkValidURL("http://example.com")).toBeFalsy();
         });
 
     });
-
 })();
