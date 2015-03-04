@@ -20,7 +20,7 @@
         <inputendpoint name="user-id" type="text" label="User Id" description="Receive a user id with no action" friendcode="participant-name" />
         <inputendpoint name="call-user" type="text" label="Call user" description="Calls the user received" friendcode="participant-name" />
         <inputendpoint name="hangup-user" type="text" label="Hang up user" description="Hang up the user received" friendcode="participant-name" />
-        <outputendpoint name="call-status" type="text" label="Call status" description="Sends the current status of the call" friendcode="call-status" />
+        <outputendpoint name="call-state" type="text" label="Call state" description="Sends the current state of the call" friendcode="call-state" />
     </wiring>
     <contents src="index.html"/>
     <rendering width="6" height="14"/>

@@ -371,9 +371,9 @@ window.Widget = (function () {
     var initHandlerGroup = function initHandlerGroup(cameraContainer, bottomMenu) {
         this.buttonCall.on('click', function (event) {
             if (this.buttonCall.hasClass('btn-success')) {
-                this.callUser();
+                this.callPeer();
             } else {
-                this.peerRequest_onHangup(this.peername);
+                peerRequest_onHangup(this.peername);
             }
         }.bind(this));
 
@@ -477,16 +477,16 @@ window.Widget = (function () {
             if (this.standalone) {
                 this.fieldContainer.hide();
             }
-            MashupPlatform.wiring.pushEvent('call-status', 'BUSY_LINE');
+            MashupPlatform.wiring.pushEvent('call-state', 'BUSY_LINE');
             break;
         case state.ANSWERING:
             this.banner.empty().text('Answering . . .');
-            MashupPlatform.wiring.pushEvent('call-status', 'ANSWERING');
+            MashupPlatform.wiring.pushEvent('call-state', 'ANSWERING');
             /* falls through */
         case state.CALLING:
             if (newState !== state.ANSWERING) {
                 this.banner.empty().text('Calling . . .');
-                MashupPlatform.wiring.pushEvent('call-status', 'CALLING');
+                MashupPlatform.wiring.pushEvent('call-state', 'CALLING');
             }
             this.buttonCall
                 .removeClass('btn-success')
@@ -520,7 +520,7 @@ window.Widget = (function () {
                 this.fieldContainer.hide();
                 this.buttonCall.attr('disabled', true);
             }
-            MashupPlatform.wiring.pushEvent('call-status', 'REGISTERED');
+            MashupPlatform.wiring.pushEvent('call-state', 'REGISTERED');
             break;
         case state.ENABLED_CALL:
             centerButtonCanCall.call(this, true);
@@ -539,7 +539,7 @@ window.Widget = (function () {
             this.buttonShow.attr('disabled', true);
             this.localCamera.hide();
             this.fieldContainer.hide();
-            MashupPlatform.wiring.pushEvent('call-status', 'UNREGISTERED');
+            MashupPlatform.wiring.pushEvent('call-state', 'UNREGISTERED');
             break;
         }
 
@@ -589,7 +589,7 @@ window.Widget = (function () {
      * @private
      * @function
      */
-     var requestWebRtc_onSdp = function requestWebRtc_onSdp(offerSdp, wp) {
+    var requestWebRtc_onSdp = function requestWebRtc_onSdp(offerSdp, wp) {
         this.connection = wp;
         sendMessage.call(this, {
             'id': 'call',

@@ -22,7 +22,7 @@ $(function () {
     "use strict";
 
     var wgt = new Widget('body', '#incoming-modal');
-        wgt.reload();
+    wgt.reload();
 
     $(window).on('beforeunload', function () {
         wgt.close();
