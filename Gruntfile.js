@@ -29,8 +29,22 @@ module.exports = function (grunt) {
                     layout: function (type, component, source) {
                         return type;
                     },
-                    targetDir: './src/lib'
+                    targetDir: './build/lib/lib'
                 }
+            }
+        },
+
+        copy: {
+            main: {
+                files: [
+                    {expand: true, cwd: 'src/js', src: '*', dest: 'build/src/js'}
+                ]
+            }
+        },
+
+        strip_code: {
+            multiple_files: {
+                src: ['build/src/js/**/*.js']
             }
         },
 
@@ -48,10 +62,22 @@ module.exports = function (grunt) {
                             'css/**/*',
                             'doc/**/*',
                             'images/**/*',
-                            'js/**/*',
-                            'lib/**/*',
                             'index.html',
                             'config.xml'
+                        ]
+                    },
+                    {
+                        expand: true,
+                        cwd: 'build/lib',
+                        src: [
+                            'lib/**/*'
+                        ]
+                    },
+                    {
+                        expand: true,
+                        cwd: 'build/src',
+                        src: [
+                            'js/**/*'
                         ]
                     },
                     {
@@ -65,7 +91,14 @@ module.exports = function (grunt) {
             }
         },
 
-        clean: ['build'],
+        clean: {
+            build: {
+                src: ['build']
+            },
+            temp: {
+                src: ['build/src']
+            }
+        },
 
         replace: {
             version: {
@@ -150,18 +183,27 @@ module.exports = function (grunt) {
 
     grunt.loadNpmTasks('grunt-bower-task');
     grunt.loadNpmTasks('grunt-contrib-compress');
+    grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-jasmine');
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks("grunt-jscs");
+    grunt.loadNpmTasks('grunt-strip-code');
     grunt.loadNpmTasks('grunt-text-replace');
 
-    grunt.registerTask('default', [
+    grunt.registerTask('test', [
+        'bower:install',
         'jshint:grunt',
         'jshint',
-        'jasmine:coverage',
         'jscs',
-        'bower:install',
+        'jasmine:coverage'
+    ]);
+
+    grunt.registerTask('default', [
+        'test',
+        'clean:temp',
+        'copy:main',
+        'strip_code',
         'replace:version',
         'compress:widget'
     ]);

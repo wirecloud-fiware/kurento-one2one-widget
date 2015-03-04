@@ -23,7 +23,8 @@
     },
     "kurento-utils": {
       "js": "js/kurento-utils.min.js"
-    }
+    },
+    "mock-socket": {}
   },
   "devDependencies": {
     "mock-socket": "~0.0.8"

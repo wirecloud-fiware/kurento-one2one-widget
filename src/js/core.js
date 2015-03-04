@@ -729,12 +729,12 @@ window.Widget = (function () {
         return this;
     };
 
-    /* Testing code */
+    /* test-code */
     window.test_methods = {
         peerRequest_onIncomingCall: peerRequest_onIncomingCall,
         checkValidURL: checkValidURL
     };
-    /* End testing code */
+    /* end-test-code */
 
     return Widget;
 
