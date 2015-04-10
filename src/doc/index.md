@@ -1,6 +1,6 @@
 This widget provide an easy way for adding videoconference support into your dashboards.
 
-This videoconference support is based on the [one2one service](https://github.com/Kurento/kurento-tutorial-node/tree/develop/kurento-one2one-call) provided by the Kurento community. You will need to deploy this service before using this widget.
+This videoconference support is based on the [scala service](https://github.com/wirecloud-fiware/kurento-example-services-scala) provided by FiWare.
 
 Latest version of this widget is always [provided in FIWARE Lab](https://store.lab.fiware.org/search/keyword/KurentoStarterKit) where you can make use of it on the [Mashup portal](https://mashup.lab.fiware.org).
 
