@@ -93,7 +93,7 @@ module.exports = function (grunt) {
 
         clean: {
             build: {
-                src: ['build']
+                src: ['build', 'bower_components']
             },
             temp: {
                 src: ['build/src']
