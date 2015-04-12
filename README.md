@@ -4,8 +4,12 @@ Kurento One2One widget
 The kurento One2One widget is a WireCloud widget usable for adding
 videoconference support to your dashboards in a simple way.
 
-This videoconference support is based on the [scala service](https://github.com/wirecloud-fiware/kurento-example-services-scala) provided by FiWare.
-You will need to deploy this service before using this widget.
+This widget needs a
+[service](https://github.com/wirecloud-fiware/kurento-example-services-scala)
+running as middleware between you and a kurento media server. You can find an
+instance of this service on FIWARE Lab
+(https://wirecloudkurento.lab.fiware.org/). This server is used by default, but
+you can deploy your own version and configure this widget for using it instead.
 
 Latest version of this widget is always [provided in FIWARE
 Lab](https://store.lab.fi-ware.org/search/keyword/KurentoStarterKit) where you
