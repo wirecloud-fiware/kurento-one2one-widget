@@ -8,12 +8,13 @@
         <image>images/catalogue.png</image>
         <smartphoneimage>images/webrtc.png</smartphoneimage>
         <description>A widget for making videoconferences using Kurento</description>
-        <homepage>https://github.com/wirecloud-fiware/widget-one2one-call</homepage>
+        <homepage>https://github.com/wirecloud-fiware/kurento-one2one-widget</homepage>
+        <issuetracker>https://github.com/wirecloud-fiware/kurento-one2one-widget/issues</issuetracker>
         <doc>doc/index.md</doc>
 	<changelog>doc/changelog.md</changelog>
     </details>
     <preferences>
-      <preference name="server-url" label="Server URL" description="URL of one2one server" type="text" default="wss://wirecloudkurento.lab.fiware.org/call" />
+        <preference name="server-url" label="Server URL" description="URL of one2one server" type="text" default="wss://wirecloudkurento.lab.fiware.org/call" />
         <preference name="stand-alone" label="Standalone" description="Allow choose the user for calling" type="boolean" default="true" />
     </preferences>
     <wiring>
