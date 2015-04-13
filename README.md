@@ -4,10 +4,12 @@ Kurento One2One widget
 The kurento One2One widget is a WireCloud widget usable for adding
 videoconference support to your dashboards in a simple way.
 
-This videoconference support is based on the [one2one
-service](https://github.com/Kurento/kurento-tutorial-node/tree/develop/kurento-one2one-call)
-provided by the kurento community. You will need to deploy this service before
-using this widget.
+This widget needs a
+[service](https://github.com/wirecloud-fiware/kurento-example-services-scala)
+running as middleware between you and a kurento media server. You can find an
+instance of this service on FIWARE Lab
+(https://wirecloudkurento.lab.fiware.org/). This server is used by default, but
+you can deploy your own version and configure this widget for using it instead.
 
 Latest version of this widget is always [provided in FIWARE
 Lab](https://store.lab.fi-ware.org/search/keyword/KurentoStarterKit) where you
@@ -17,12 +19,13 @@ Build
 -----
 
 Be sure to have installed [Node.js](http://node.js) and [Bower](http://bower.io)
-in your system. For example, you can install it on Ubunutu and Debian running the
+in your system. For example, you can install it on Ubuntu and Debian running the
 following commands:
 
 ```bash
 curl -sL https://deb.nodesource.com/setup | sudo bash -
-sudo apt-get install -y nodejs
+sudo apt-get install nodejs
+sudo apt-get install npm
 sudo npm install -g bower
 ```
 
@@ -32,7 +35,13 @@ Install other npm dependencies by running:
 npm install
 ```
 
-And build the widget using grunt:
+For build the widget you need download grunt:
+
+```bash
+sudo npm install -g grunt-cli
+```
+
+And now, you can use grunt:
 
 ```bash
 grunt
