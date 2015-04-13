@@ -8,7 +8,7 @@
   },
   "exportsOverride": {
     "adapter.js": {
-      "js": "src/js/adapter.js"
+      "js": "adapter.js"
     },
     "jquery": {
       "js": "dist/jquery.min.js"
