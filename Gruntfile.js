@@ -163,6 +163,10 @@ module.exports = function (grunt) {
           coverage: {
             src: '<%= jasmine.test.src %>',
             options: {
+              summary: true,
+              junit: {
+                path: 'build/junit'
+              },
               helpers: '<%= jasmine.test.options.helpers %>',
               specs: '<%= jasmine.test.options.specs %>',
               vendor: '<%= jasmine.test.options.vendor %>',
