@@ -373,7 +373,7 @@ window.Widget = (function () {
             if (this.buttonCall.hasClass('btn-success')) {
                 this.callPeer();
             } else {
-                peerRequest_onHangup(this.peername);
+                peerRequest_onHangup.call(this, this.peername);
             }
         }.bind(this));
 
