@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-/*global $, kurentoUtils */
+/*global $, kurentoUtils, MashupPlatform */
 
 
 window.Widget = (function () {
@@ -299,8 +299,13 @@ window.Widget = (function () {
                     updateState.call(this, state.BUSY_LINE);
                 }.bind(this),
                 function (error) {
-                    MashupPlatform.widget.log('TODO');
-                });
+                    MashupPlatform.widget.log('TODO: ' + error);
+                    updateState.call(this, state.ENABLED_CALL);
+                    sendMessage.call(this, {
+                        'id': 'stop'
+                    });
+                    freeWebRtcPeer.call(this);
+                }.bind(this));
         }
         this.hasIncomingCall = false;
 
@@ -358,9 +363,10 @@ window.Widget = (function () {
      */
     var freeWebRtcPeer = function freeWebRtcPeer() {
         // Kurento Dependency: free the resources used by WebRtcPeer.
-        this.connection.dispose();
-        delete this.connection;
-
+        if (typeof this.connection != "undefined") {
+            this.connection.dispose();
+            delete this.connection;
+        }
         return this;
     };
 
@@ -434,24 +440,24 @@ window.Widget = (function () {
             action = "set-peername";
         }
         switch (action) {
-            case 'call-peername':
-                if (checkStatesAllowed.call(this, [state.REGISTERED, state.ENABLED_CALL])) {
-                    this.peername = peername;
-                    updateState.call(this, state.ENABLED_CALL);
-                    this.callPeer();
-                }
-                break;
-            case 'hangup-peername':
-                if (checkStatesAllowed.call(this, [state.CALLING, state.BUSY_LINE]) && this.peername == peername) {
-                    this.hangupPeer();
-                }
-                break;
-            default:
-            case 'set-peername':
-                if (checkStatesAllowed.call(this, [state.REGISTERED, state.ENABLED_CALL])) {
-                    this.peername = peername;
-                    updateState.call(this, state.ENABLED_CALL);
-                }
+        case 'call-peername':
+            if (checkStatesAllowed.call(this, [state.REGISTERED, state.ENABLED_CALL])) {
+                this.peername = peername;
+                updateState.call(this, state.ENABLED_CALL);
+                this.callPeer();
+            }
+            break;
+        case 'hangup-peername':
+            if (checkStatesAllowed.call(this, [state.CALLING, state.BUSY_LINE]) && this.peername == peername) {
+                this.hangupPeer();
+            }
+            break;
+        default:
+        case 'set-peername':
+            if (checkStatesAllowed.call(this, [state.REGISTERED, state.ENABLED_CALL])) {
+                this.peername = peername;
+                updateState.call(this, state.ENABLED_CALL);
+            }
         }
 
         return this;
@@ -461,7 +467,14 @@ window.Widget = (function () {
      * @private
      * @function
      */
-    var state = {'BUSY_LINE': 0, 'CALLING': 1, 'ANSWERING': 2, 'REGISTERED': 3, 'UNREGISTERED': 4, 'ENABLED_CALL': 5};
+    var state = {
+        'BUSY_LINE': 0,
+        'CALLING': 1,
+        'ANSWERING': 2,
+        'REGISTERED': 3,
+        'UNREGISTERED': 4,
+        'ENABLED_CALL': 5
+    };
 
     /**
      * @private
@@ -559,6 +572,9 @@ window.Widget = (function () {
     var peerRequest_onHangup = function peerRequest_onHangup() {
         if (checkStatesAllowed.call(this, [state.CALLING, state.ANSWERING, state.BUSY_LINE])) {
             updateState.call(this, state.ENABLED_CALL);
+            sendMessage.call(this, {
+                'id': 'stop'
+            });
             freeWebRtcPeer.call(this);
         }
     };
@@ -604,7 +620,13 @@ window.Widget = (function () {
      * @function
      */
     var requestWebRtc_onError = function requestWebRtc_onError(error) {
-        MashupPlatform.widget.log('TODO');
+        if (error.name == "DevicesNotFoundError") {
+            MashupPlatform.widget.log("You don't have video device.");
+            showResponse.call(this, 'warning', "You don't have video device.");
+        } else {
+            MashupPlatform.widget.log('TODO');
+        }
+        updateState.call(this, state.ENABLED_CALL);
     };
 
     /**
@@ -625,23 +647,23 @@ window.Widget = (function () {
         var message = JSON.parse(event.data);
 
         switch (message.id) {
-            case 'registerResponse':
-                serverResponse_onRegister.call(this, message);
-                break;
-            case 'callResponse':
-                serverResponse_onCall.call(this, message);
-                break;
-            case 'incomingCall':
-                peerRequest_onIncomingCall.call(this, message);
-                break;
-            case 'startCommunication':
-                serverResponse_onComplete.call(this, message);
-                break;
-            case 'stopCommunication':
-                peerRequest_onHangup.call(this);
-                break;
-            default:
-                MashupPlatform.widget.log('TODO');
+        case 'registerResponse':
+            serverResponse_onRegister.call(this, message);
+            break;
+        case 'callResponse':
+            serverResponse_onCall.call(this, message);
+            break;
+        case 'incomingCall':
+            peerRequest_onIncomingCall.call(this, message);
+            break;
+        case 'startCommunication':
+            serverResponse_onComplete.call(this, message);
+            break;
+        case 'stopCommunication':
+            peerRequest_onHangup.call(this);
+            break;
+        default:
+            MashupPlatform.widget.log('TODO');
         }
 
         return this;
@@ -659,11 +681,11 @@ window.Widget = (function () {
             this.connection.processSdpAnswer(data.sdpAnswer);
             break;
         default:
-            this.dispose();
-            if (data.message == 'user declined') {
-                showResponse.call(this, 'warning', "User <strong>" + this.peername + "</strong> rejected your call");
+            freeWebRtcPeer.call(this);
+            if (data.message == 'user declined' || data.message == 'call-rejected') {
+                showResponse.call(this, 'danger', "User <strong>" + this.peername + "</strong> rejected your call");
             } else if (data.message == 'busy') {
-                showResponse.call(this, 'warning', "User <strong>" + this.peername + "</strong> line is busy right now");
+                showResponse.call(this, 'danger', "User <strong>" + this.peername + "</strong> line is busy right now");
             } else {
                 showResponse.call(this, 'warning', "User <strong>" + this.peername + "</strong> is not registered");
             }
@@ -680,7 +702,12 @@ window.Widget = (function () {
     var serverResponse_onComplete = function serverResponse_onComplete(message) {
         updateState.call(this, state.BUSY_LINE);
         // Kurento Dependency: invoke when and SDP answer is received.
-        this.connection.processSdpAnswer(message.sdpAnswer);
+        if (typeof this.connection != "undefined") {
+            this.connection.processSdpAnswer(message.sdpAnswer);
+        } else {
+            showResponse.call(this, 'danger', "Seems that you don't have any connection.");
+            updateState.call(this, state.ENABLED_CALL);
+        }
     };
 
     /**
@@ -700,17 +727,17 @@ window.Widget = (function () {
      */
     var serverResponse_onRegister = function serverResponse_onRegister(data) {
         switch (data.response) {
-            case 'accepted':
-                showResponse.call(this, 'info', 'You were registered successfully');
-                if (checkStringValid(this.peername)) {
-                    updateState.call(this, state.ENABLED_CALL);
-                } else {
-                    updateState.call(this, state.REGISTERED);
-                }
-                break;
-            default:
-                showResponse.call(this, 'warning', 'User <strong>' + this.username + '</strong> is already in use.');
-                updateState.call(this, state.UNREGISTERED);
+        case 'accepted':
+            showResponse.call(this, 'info', 'You were registered successfully');
+            if (checkStringValid(this.peername)) {
+                updateState.call(this, state.ENABLED_CALL);
+            } else {
+                updateState.call(this, state.REGISTERED);
+            }
+            break;
+        default:
+            showResponse.call(this, 'warning', 'User <strong>' + this.username + '</strong> is already in use.');
+            updateState.call(this, state.UNREGISTERED);
         }
 
         return this;
