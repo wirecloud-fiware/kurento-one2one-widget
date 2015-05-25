@@ -116,6 +116,7 @@ window.Widget = (function () {
          */
         'acceptIncomingCall': function acceptIncomingCall() {
             if (this.hasIncomingCall) {
+                this.hasIncomingCall = false;
                 this.callAccepted = true;
                 this.incomingCallModal.modal('hide');
             }
@@ -150,6 +151,7 @@ window.Widget = (function () {
          */
         'cancelIncomingCall': function cancelIncomingCall() {
             if (this.hasIncomingCall) {
+                this.hasIncomingCall = false;
                 this.callAccepted = false;
                 this.incomingCallModal.modal('hide');
             }
@@ -275,12 +277,19 @@ window.Widget = (function () {
      */
     var answerIncomingCall = function answerIncomingCall() {
         if (!this.callAccepted) {
-            sendMessage.call(this, {
-                id: 'incomingCallResponse',
-                from: this.callername,
-                callResponse: 'reject',
-                message: 'call-rejected'
-            });
+            if (this.notifyCancel) {
+                sendMessage.call(this, {
+                    id: 'incomingCallResponse',
+                    from: this.callername,
+                    callResponse: 'reject',
+                    message: 'call-rejected'
+                });
+                if (this.isTimeout) {
+                    showResponse.call(this, 'danger', "The call have been hanged up by you because of a long time without answering.");
+                }
+            } else {
+                showResponse.call(this, 'danger', "User <strong>" + this.callername + "</strong> hanged up the call for don't accept in time.");
+            }
             freeWebRtcPeer.call(this);
             delete this.callername;
         } else {
@@ -299,15 +308,11 @@ window.Widget = (function () {
                     updateState.call(this, state.BUSY_LINE);
                 }.bind(this),
                 function (error) {
-                    MashupPlatform.widget.log('TODO: ' + error);
-                    updateState.call(this, state.ENABLED_CALL);
-                    sendMessage.call(this, {
-                        'id': 'stop'
-                    });
-                    freeWebRtcPeer.call(this);
-                }.bind(this));
+                    MashupPlatform.widget.log('TODO');
+                });
         }
         this.hasIncomingCall = false;
+        this.notifyCancel = true;
 
         return this;
     };
@@ -363,10 +368,9 @@ window.Widget = (function () {
      */
     var freeWebRtcPeer = function freeWebRtcPeer() {
         // Kurento Dependency: free the resources used by WebRtcPeer.
-        if (typeof this.connection != "undefined") {
-            this.connection.dispose();
-            delete this.connection;
-        }
+        this.connection.dispose();
+        delete this.connection;
+
         return this;
     };
 
@@ -440,24 +444,24 @@ window.Widget = (function () {
             action = "set-peername";
         }
         switch (action) {
-        case 'call-peername':
-            if (checkStatesAllowed.call(this, [state.REGISTERED, state.ENABLED_CALL])) {
-                this.peername = peername;
-                updateState.call(this, state.ENABLED_CALL);
-                this.callPeer();
-            }
-            break;
-        case 'hangup-peername':
-            if (checkStatesAllowed.call(this, [state.CALLING, state.BUSY_LINE]) && this.peername == peername) {
-                this.hangupPeer();
-            }
-            break;
-        default:
-        case 'set-peername':
-            if (checkStatesAllowed.call(this, [state.REGISTERED, state.ENABLED_CALL])) {
-                this.peername = peername;
-                updateState.call(this, state.ENABLED_CALL);
-            }
+            case 'call-peername':
+                if (checkStatesAllowed.call(this, [state.REGISTERED, state.ENABLED_CALL])) {
+                    this.peername = peername;
+                    updateState.call(this, state.ENABLED_CALL);
+                    this.callPeer();
+                }
+                break;
+            case 'hangup-peername':
+                if (checkStatesAllowed.call(this, [state.CALLING, state.BUSY_LINE]) && this.peername == peername) {
+                    this.hangupPeer();
+                }
+                break;
+            default:
+            case 'set-peername':
+                if (checkStatesAllowed.call(this, [state.REGISTERED, state.ENABLED_CALL])) {
+                    this.peername = peername;
+                    updateState.call(this, state.ENABLED_CALL);
+                }
         }
 
         return this;
@@ -467,14 +471,7 @@ window.Widget = (function () {
      * @private
      * @function
      */
-    var state = {
-        'BUSY_LINE': 0,
-        'CALLING': 1,
-        'ANSWERING': 2,
-        'REGISTERED': 3,
-        'UNREGISTERED': 4,
-        'ENABLED_CALL': 5
-    };
+    var state = {'BUSY_LINE': 0, 'CALLING': 1, 'ANSWERING': 2, 'REGISTERED': 3, 'UNREGISTERED': 4, 'ENABLED_CALL': 5};
 
     /**
      * @private
@@ -571,10 +568,23 @@ window.Widget = (function () {
      */
     var peerRequest_onHangup = function peerRequest_onHangup() {
         if (checkStatesAllowed.call(this, [state.CALLING, state.ANSWERING, state.BUSY_LINE])) {
+            this.notifyCancel = false;
+            this.cancelIncomingCall.call(this);
             updateState.call(this, state.ENABLED_CALL);
-            sendMessage.call(this, {
-                'id': 'stop'
-            });
+            freeWebRtcPeer.call(this);
+        }
+    };
+
+    /**
+     * @private
+     * @function
+     */
+    var incomingCallTimeout = function incomingCallTimeout() {
+        if (checkStatesAllowed.call(this, [state.ANSWERING])) {
+            this.notifyCancel = true;
+            this.isTimeout = true;
+            this.cancelIncomingCall.call(this);
+            updateState.call(this, state.ENABLED_CALL);
             freeWebRtcPeer.call(this);
         }
     };
@@ -596,8 +606,10 @@ window.Widget = (function () {
             this.callAccepted = false;
             this.callername = message.from;
 
+            updateState.call(this, state.ANSWERING);
             $('#incoming-user').text(this.callername);
             this.incomingCallModal.modal('show');
+            setIntervalX(noop, 2000, 5, incomingCallTimeout.bind(this));
         }
     };
 
@@ -613,6 +625,7 @@ window.Widget = (function () {
             'to': this.peername,
             'sdpOffer': offerSdp
         });
+        setIntervalX(noop, 2000, 5, peerRequest_onHangup.bind(this));
     };
 
     /**
@@ -620,13 +633,7 @@ window.Widget = (function () {
      * @function
      */
     var requestWebRtc_onError = function requestWebRtc_onError(error) {
-        if (error.name == "DevicesNotFoundError") {
-            MashupPlatform.widget.log("You don't have video device.");
-            showResponse.call(this, 'warning', "You don't have video device.");
-        } else {
-            MashupPlatform.widget.log('TODO');
-        }
-        updateState.call(this, state.ENABLED_CALL);
+        MashupPlatform.widget.log('TODO');
     };
 
     /**
@@ -647,23 +654,23 @@ window.Widget = (function () {
         var message = JSON.parse(event.data);
 
         switch (message.id) {
-        case 'registerResponse':
-            serverResponse_onRegister.call(this, message);
-            break;
-        case 'callResponse':
-            serverResponse_onCall.call(this, message);
-            break;
-        case 'incomingCall':
-            peerRequest_onIncomingCall.call(this, message);
-            break;
-        case 'startCommunication':
-            serverResponse_onComplete.call(this, message);
-            break;
-        case 'stopCommunication':
-            peerRequest_onHangup.call(this);
-            break;
-        default:
-            MashupPlatform.widget.log('TODO');
+            case 'registerResponse':
+                serverResponse_onRegister.call(this, message);
+                break;
+            case 'callResponse':
+                serverResponse_onCall.call(this, message);
+                break;
+            case 'incomingCall':
+                peerRequest_onIncomingCall.call(this, message);
+                break;
+            case 'startCommunication':
+                serverResponse_onComplete.call(this, message);
+                break;
+            case 'stopCommunication':
+                peerRequest_onHangup.call(this);
+                break;
+            default:
+                MashupPlatform.widget.log('TODO');
         }
 
         return this;
@@ -681,13 +688,15 @@ window.Widget = (function () {
             this.connection.processSdpAnswer(data.sdpAnswer);
             break;
         default:
-            freeWebRtcPeer.call(this);
-            if (data.message == 'user declined' || data.message == 'call-rejected') {
-                showResponse.call(this, 'danger', "User <strong>" + this.peername + "</strong> rejected your call");
+            this.dispose();
+            if (data.message == 'user declined') {
+                showResponse.call(this, 'warning', "User <strong>" + this.peername + "</strong> rejected your call");
             } else if (data.message == 'busy') {
                 showResponse.call(this, 'danger', "User <strong>" + this.peername + "</strong> line is busy right now");
+            } else if (data.message == "user " + this.peername + " is not registered") {
+                showResponse.call(this, 'warning', "User <strong>" + this.peername + "</strong> line is busy right now");
             } else {
-                showResponse.call(this, 'warning', "User <strong>" + this.peername + "</strong> is not registered");
+                showResponse.call(this, 'warning', "Some error happened <strong>" + data.message + "</strong>");
             }
             updateState.call(this, state.ENABLED_CALL);
         }
@@ -702,12 +711,7 @@ window.Widget = (function () {
     var serverResponse_onComplete = function serverResponse_onComplete(message) {
         updateState.call(this, state.BUSY_LINE);
         // Kurento Dependency: invoke when and SDP answer is received.
-        if (typeof this.connection != "undefined") {
-            this.connection.processSdpAnswer(message.sdpAnswer);
-        } else {
-            showResponse.call(this, 'danger', "Seems that you don't have any connection.");
-            updateState.call(this, state.ENABLED_CALL);
-        }
+        this.connection.processSdpAnswer(message.sdpAnswer);
     };
 
     /**
@@ -727,17 +731,17 @@ window.Widget = (function () {
      */
     var serverResponse_onRegister = function serverResponse_onRegister(data) {
         switch (data.response) {
-        case 'accepted':
-            showResponse.call(this, 'info', 'You were registered successfully');
-            if (checkStringValid(this.peername)) {
-                updateState.call(this, state.ENABLED_CALL);
-            } else {
-                updateState.call(this, state.REGISTERED);
-            }
-            break;
-        default:
-            showResponse.call(this, 'warning', 'User <strong>' + this.username + '</strong> is already in use.');
-            updateState.call(this, state.UNREGISTERED);
+            case 'accepted':
+                showResponse.call(this, 'info', 'You were registered successfully');
+                if (checkStringValid(this.peername)) {
+                    updateState.call(this, state.ENABLED_CALL);
+                } else {
+                    updateState.call(this, state.REGISTERED);
+                }
+                break;
+            default:
+                showResponse.call(this, 'warning', 'User <strong>' + this.username + '</strong> is already in use.');
+                updateState.call(this, state.UNREGISTERED);
         }
 
         return this;
@@ -755,6 +759,30 @@ window.Widget = (function () {
 
         return this;
     };
+
+    /**
+     * @private
+     * @function
+     */
+    var noop = function () {};
+
+    /**
+     * @private
+     * @function
+     */
+    var setIntervalX = function setIntervalX(callback, delay, repetitions, end_f) {
+        var f = end_f || noop;
+        var x = 0;
+        var intervalID = window.setInterval(function () {
+            callback();
+            if (++x === repetitions) {
+                window.clearInterval(intervalID);
+                f();
+            }
+        }, delay);
+    };
+
+
 
     /* test-code */
     window.test_methods = {
