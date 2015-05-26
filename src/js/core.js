@@ -35,13 +35,45 @@ window.Widget = (function () {
 
         this.alertManager = $('<div>').hide();
         this.iconPhone = $('<span>').addClass('fa fa-phone');
+        this.iconMuteMicro = $('<span>').addClass('fa fa-microphone');
+        this.iconMutedMicro = $('<span>').addClass('fa fa-microphone-slash').hide();
+        this.iconMuteVideo = $('<span>').addClass('fa fa-video-camera');
+        this.iconMutedVideo = $('<span>').addClass('fa fa-ban').hide();
         this.incomingCallModal = $(modalSelector);
+
+        this.buttonMuteMicro = $('<button>').addClass('btn btn-info btn-circle')
+            .append(this.iconMuteMicro)
+            .append(this.iconMutedMicro)
+            .tooltip({
+                'title': function title() {
+                    if ($(this).hasClass('active')) {
+                        return 'Put the sound on again!';
+                    } else {
+                        return 'Mute remote microphone';
+                    }
+                }
+            })
+            .hide();
+
+        this.buttonMuteVideo = $('<button>').addClass('btn btn-info btn-circle')
+            .append(this.iconMuteVideo)
+            .tooltip({
+                'title': function title() {
+                    if ($(this).hasClass('active')) {
+                        return 'Turn on the remote video!';
+                    } else {
+                        return 'Turn off the remote video!';
+                    }
+                }
+            })
+            .hide();
 
         this.buttonAccept = $('<button>').addClass('btn btn-info btn-circle')
             .append($('<span>').addClass('fa fa-bell'))
             .tooltip({
                 'title': 'Accept call waiting'
             });
+
         this.buttonCall = $('<button>').addClass('btn btn-success btn-lg btn-circle')
             .append(this.iconPhone)
             .tooltip({
@@ -53,6 +85,7 @@ window.Widget = (function () {
                     }
                 }
             });
+
         this.buttonShow = $('<button>').addClass('btn btn-info btn-circle')
             .append($('<span>').addClass('fa fa-video-camera'))
             .tooltip({
@@ -71,7 +104,7 @@ window.Widget = (function () {
             .append(this.field);
 
         buttonList = $('<div>').addClass('button-list')
-            .append(this.buttonAccept, this.buttonCall, this.buttonShow);
+            .append(this.buttonMuteMicro, this.buttonMuteVideo, this.buttonAccept, this.buttonCall, this.buttonShow);
 
         bottomMenu = $('<div>').addClass('bottom-menu')
             .append(this.fieldContainer, buttonList).hide();
@@ -308,11 +341,17 @@ window.Widget = (function () {
                     updateState.call(this, state.BUSY_LINE);
                 }.bind(this),
                 function (error) {
-                    MashupPlatform.widget.log('TODO');
-                });
+                    MashupPlatform.widget.log('TODO: ' + error);
+                    updateState.call(this, state.ENABLED_CALL);
+                    sendMessage.call(this, {
+                        'id': 'stop'
+                    });
+                    freeWebRtcPeer.call(this);
+                }.bind(this));
         }
         this.hasIncomingCall = false;
         this.notifyCancel = true;
+        this.isTimeout = false;
 
         return this;
     };
@@ -368,9 +407,10 @@ window.Widget = (function () {
      */
     var freeWebRtcPeer = function freeWebRtcPeer() {
         // Kurento Dependency: free the resources used by WebRtcPeer.
-        this.connection.dispose();
-        delete this.connection;
-
+        if (typeof this.connection != 'undefined') {
+            this.connection.dispose();
+            delete this.connection;
+        }
         return this;
     };
 
@@ -397,6 +437,19 @@ window.Widget = (function () {
             }
         }.bind(this));
 
+        buttonMuteMicroDefault.call(this);
+        this.buttonMuteMicro.on('click', function (event) {
+            muteRemoteMicro.call(this);
+        }.bind(this));
+
+        this.buttonMuteVideo.on('click', function (event) {
+            if (this.buttonMuteVideo.hasClass('active')) {
+                this.buttonMuteVideo.removeClass('active');
+            } else {
+                this.buttonMuteVideo.addClass('active');
+            }
+        }.bind(this));
+
         cameraContainer
             .on('mouseenter', function (event) {
                 bottomMenu.fadeIn();
@@ -414,6 +467,14 @@ window.Widget = (function () {
 
         this.incomingCallModal.find('#accept-call').on('click', function (event) {
             this.acceptIncomingCall();
+        }.bind(this));
+
+        this.incomingCallModal.find('#decline-call').on('click', function (event) {
+            this.notifyCancel = true;
+            this.isTimeout = false;
+            this.cancelIncomingCall.call(this);
+            updateState.call(this, state.ENABLED_CALL);
+            freeWebRtcPeer.call(this);
         }.bind(this));
 
         this.incomingCallModal.on('hidden.bs.modal', answerIncomingCall.bind(this));
@@ -444,24 +505,24 @@ window.Widget = (function () {
             action = "set-peername";
         }
         switch (action) {
-            case 'call-peername':
-                if (checkStatesAllowed.call(this, [state.REGISTERED, state.ENABLED_CALL])) {
-                    this.peername = peername;
-                    updateState.call(this, state.ENABLED_CALL);
-                    this.callPeer();
-                }
-                break;
-            case 'hangup-peername':
-                if (checkStatesAllowed.call(this, [state.CALLING, state.BUSY_LINE]) && this.peername == peername) {
-                    this.hangupPeer();
-                }
-                break;
-            default:
-            case 'set-peername':
-                if (checkStatesAllowed.call(this, [state.REGISTERED, state.ENABLED_CALL])) {
-                    this.peername = peername;
-                    updateState.call(this, state.ENABLED_CALL);
-                }
+        case 'call-peername':
+            if (checkStatesAllowed.call(this, [state.REGISTERED, state.ENABLED_CALL])) {
+                this.peername = peername;
+                updateState.call(this, state.ENABLED_CALL);
+                this.callPeer();
+            }
+            break;
+        case 'hangup-peername':
+            if (checkStatesAllowed.call(this, [state.CALLING, state.BUSY_LINE]) && this.peername == peername) {
+                this.hangupPeer();
+            }
+            break;
+        default:
+        case 'set-peername':
+            if (checkStatesAllowed.call(this, [state.REGISTERED, state.ENABLED_CALL])) {
+                this.peername = peername;
+                updateState.call(this, state.ENABLED_CALL);
+            }
         }
 
         return this;
@@ -471,7 +532,14 @@ window.Widget = (function () {
      * @private
      * @function
      */
-    var state = {'BUSY_LINE': 0, 'CALLING': 1, 'ANSWERING': 2, 'REGISTERED': 3, 'UNREGISTERED': 4, 'ENABLED_CALL': 5};
+    var state = {
+        'BUSY_LINE': 0,
+        'CALLING': 1,
+        'ANSWERING': 2,
+        'REGISTERED': 3,
+        'UNREGISTERED': 4,
+        'ENABLED_CALL': 5
+    };
 
     /**
      * @private
@@ -562,6 +630,53 @@ window.Widget = (function () {
      *  EVENT HANDLERS
      * ================================================================================== */
 
+    var muteRemoteMicro = function muteRemoteMicro() {
+        if (checkStatesAllowed.call(this, [state.BUSY_LINE])) {
+            buttonMuteToggle(this.buttonMuteMicro,
+                                          this.iconMuteMicro,
+                                          this.iconMutedMicro);
+            toggleRemoteSound.call(this);
+        } else {
+            this.buttonMuteMicro.fadeOut();
+        }
+    };
+
+    var toggleRemoteSound = function toggleRemoteSound() {
+        var stream = null;
+        if (typeof this.connection != 'undefined') {
+            if (this.connection.pc && this.connection.pc.getRemoteStreams().length > 0) {
+                stream = this.connection.pc.getRemoteStreams()[0];
+            } else if (this.connection.getRemoteStream) {
+                stream = this.connection.getRemoteStream();
+            }
+        }
+        if (stream) {
+            var audioTracks = stream.getAudioTracks();
+            for (var i = 0, l = audioTracks.length; i < l; i++) {
+                audioTracks[i].enabled = !audioTracks[i].enabled;
+            }
+        }
+    };
+
+    var buttonMuteMicroDefault = function buttonMuteMicroDefault() {
+        this.buttonMuteMicro.removeClass('active');
+        this.iconMuteMicro.show();
+        this.iconMutedMicro.hide();
+    };
+
+    var buttonMuteToggle = function buttonMuteToggle(btn, noact, act) {
+        if (btn.hasClass('active')) {
+            btn.removeClass('active');
+            act.hide();
+            noact.show();
+        } else {
+            btn.addClass('active');
+            noact.hide();
+            act.show();
+        }
+    };
+
+
     /**
      * @private
      * @function
@@ -571,6 +686,9 @@ window.Widget = (function () {
             this.notifyCancel = false;
             this.cancelIncomingCall.call(this);
             updateState.call(this, state.ENABLED_CALL);
+            sendMessage.call(this, {
+                'id': 'stop'
+            });
             freeWebRtcPeer.call(this);
         }
     };
@@ -633,7 +751,13 @@ window.Widget = (function () {
      * @function
      */
     var requestWebRtc_onError = function requestWebRtc_onError(error) {
-        MashupPlatform.widget.log('TODO');
+        if (error.name == "DevicesNotFoundError") {
+            MashupPlatform.widget.log("You don't have video device.");
+            showResponse.call(this, 'warning', "You don't have video device.");
+        } else {
+            MashupPlatform.widget.log('TODO');
+        }
+        updateState.call(this, state.ENABLED_CALL);
     };
 
     /**
@@ -654,23 +778,23 @@ window.Widget = (function () {
         var message = JSON.parse(event.data);
 
         switch (message.id) {
-            case 'registerResponse':
-                serverResponse_onRegister.call(this, message);
-                break;
-            case 'callResponse':
-                serverResponse_onCall.call(this, message);
-                break;
-            case 'incomingCall':
-                peerRequest_onIncomingCall.call(this, message);
-                break;
-            case 'startCommunication':
-                serverResponse_onComplete.call(this, message);
-                break;
-            case 'stopCommunication':
-                peerRequest_onHangup.call(this);
-                break;
-            default:
-                MashupPlatform.widget.log('TODO');
+        case 'registerResponse':
+            serverResponse_onRegister.call(this, message);
+            break;
+        case 'callResponse':
+            serverResponse_onCall.call(this, message);
+            break;
+        case 'incomingCall':
+            peerRequest_onIncomingCall.call(this, message);
+            break;
+        case 'startCommunication':
+            serverResponse_onComplete.call(this, message);
+            break;
+        case 'stopCommunication':
+            peerRequest_onHangup.call(this);
+            break;
+        default:
+            MashupPlatform.widget.log('TODO');
         }
 
         return this;
@@ -688,9 +812,9 @@ window.Widget = (function () {
             this.connection.processSdpAnswer(data.sdpAnswer);
             break;
         default:
-            this.dispose();
-            if (data.message == 'user declined') {
-                showResponse.call(this, 'warning', "User <strong>" + this.peername + "</strong> rejected your call");
+            freeWebRtcPeer.call(this);
+            if (data.message == 'user declined' || data.message == 'call-rejected') {
+                showResponse.call(this, 'danger', "User <strong>" + this.peername + "</strong> rejected your call");
             } else if (data.message == 'busy') {
                 showResponse.call(this, 'danger', "User <strong>" + this.peername + "</strong> line is busy right now");
             } else if (data.message == "user " + this.peername + " is not registered") {
@@ -698,6 +822,7 @@ window.Widget = (function () {
             } else {
                 showResponse.call(this, 'warning', "Some error happened <strong>" + data.message + "</strong>");
             }
+
             updateState.call(this, state.ENABLED_CALL);
         }
 
@@ -711,7 +836,12 @@ window.Widget = (function () {
     var serverResponse_onComplete = function serverResponse_onComplete(message) {
         updateState.call(this, state.BUSY_LINE);
         // Kurento Dependency: invoke when and SDP answer is received.
-        this.connection.processSdpAnswer(message.sdpAnswer);
+        if (typeof this.connection != "undefined") {
+            this.connection.processSdpAnswer(message.sdpAnswer);
+        } else {
+            showResponse.call(this, 'danger', "Seems that you don't have any connection.");
+            updateState.call(this, state.ENABLED_CALL);
+        }
     };
 
     /**
@@ -731,17 +861,17 @@ window.Widget = (function () {
      */
     var serverResponse_onRegister = function serverResponse_onRegister(data) {
         switch (data.response) {
-            case 'accepted':
-                showResponse.call(this, 'info', 'You were registered successfully');
-                if (checkStringValid(this.peername)) {
-                    updateState.call(this, state.ENABLED_CALL);
-                } else {
-                    updateState.call(this, state.REGISTERED);
-                }
-                break;
-            default:
-                showResponse.call(this, 'warning', 'User <strong>' + this.username + '</strong> is already in use.');
-                updateState.call(this, state.UNREGISTERED);
+        case 'accepted':
+            showResponse.call(this, 'info', 'You were registered successfully');
+            if (checkStringValid(this.peername)) {
+                updateState.call(this, state.ENABLED_CALL);
+            } else {
+                updateState.call(this, state.REGISTERED);
+            }
+            break;
+        default:
+            showResponse.call(this, 'warning', 'User <strong>' + this.username + '</strong> is already in use.');
+            updateState.call(this, state.UNREGISTERED);
         }
 
         return this;
