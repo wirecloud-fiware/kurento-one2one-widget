@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-/*global $, kurentoUtils, MashupPlatform */
+/*global $, kurentoUtils, MashupPlatform, screenfull*/
 
 
 window.Widget = (function () {
@@ -22,7 +22,7 @@ window.Widget = (function () {
     'use strict';
 
     var Widget = function Widget(containerSelector, modalSelector) {
-        var cameraContainer, bottomMenu, buttonList;
+        var cameraContainer, bottomMenu, buttonList, maxButtonDiv;
 
         this.remoteCamera = $('<video>').addClass('camera camera-lg')
             .attr('autoplay', true).attr('poster', 'images/webrtc.png');
@@ -39,7 +39,23 @@ window.Widget = (function () {
         this.iconMutedMicro = $('<span>').addClass('fa fa-microphone-slash').hide();
         this.iconMuteVideo = $('<span>').addClass('fa fa-video-camera');
         this.iconMutedVideo = $('<span>').addClass('fa fa-ban').hide();
+        this.iconMaximize = $('<span>').addClass('fa fa-expand');
+        this.iconMinimize = $('<span>').addClass('fa fa-compress').hide();
         this.incomingCallModal = $(modalSelector);
+
+        this.buttonMaximize = $('<button>').addClass('btn btn-info btn-circle')
+            .append(this.iconMaximize)
+            .append(this.iconMinimize)
+            .tooltip({
+                'title': function title() {
+                    if ($(this).hasClass('minim')) {
+                        return 'Minimize the widget';
+                    } else {
+                        return 'Maximize the widget';
+                    }
+                }
+            });
+
 
         this.buttonMuteMicro = $('<button>').addClass('btn btn-info btn-circle')
             .append(this.iconMuteMicro)
@@ -103,8 +119,14 @@ window.Widget = (function () {
         this.fieldContainer = $('<div>').addClass('standalone')
             .append(this.field);
 
+
+        maxButtonDiv = $('<div>').addClass('button-max')
+            .append(this.buttonMaximize);
+
         buttonList = $('<div>').addClass('button-list')
-            .append(this.buttonMuteMicro, this.buttonMuteVideo, this.buttonAccept, this.buttonCall, this.buttonShow);
+            .append(this.buttonMuteMicro, this.buttonMuteVideo, this.buttonAccept, this.buttonCall, this.buttonShow, maxButtonDiv);
+
+
 
         bottomMenu = $('<div>').addClass('bottom-menu')
             .append(this.fieldContainer, buttonList).hide();
@@ -434,6 +456,26 @@ window.Widget = (function () {
             } else {
                 this.buttonShow.addClass('active');
                 this.localCamera.fadeIn();
+            }
+        }.bind(this));
+
+        document.addEventListener(screenfull.raw.fullscreenchange, function () {
+            if (screenfull.isFullscreen) {
+                this.iconMaximize.hide();
+                this.iconMinimize.show();
+                this.buttonMaximize.addClass('minim');
+            } else {
+                this.iconMaximize.show();
+                this.iconMinimize.hide();
+                this.buttonMaximize.removeClass('minim');
+            }
+            window.console.log('Am I fullscreen? ' + (screenfull.isFullscreen ? 'Yes' : 'No'));
+        }.bind(this));
+        this.buttonMaximize.on('click', function (event) {
+            if (screenfull.enabled) {
+                screenfull.toggle();
+            } else {
+                showResponse.call(this, 'warning', "Your webbrowser don't suppor maximize, please upgrade to Firefox >= 10, Chrome >= 15, Safari >= 5.1 or IE >= 11");
             }
         }.bind(this));
 

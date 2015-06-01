@@ -13,6 +13,9 @@
         <doc>doc/index.md</doc>
 	<changelog>doc/changelog.md</changelog>
     </details>
+    <requirements>
+      <feature name="FullscreenWidget"/>
+    </requirements>
     <preferences>
         <preference name="server-url" label="Server URL" description="URL of one2one server" type="text" default="wss://wirecloudkurento.lab.fiware.org/call" />
         <preference name="stand-alone" label="Standalone" description="Allow choose the user for calling" type="boolean" default="true" />

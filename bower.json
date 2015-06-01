@@ -4,7 +4,8 @@
     "bootstrap": "~3.2.0",
     "fontawesome": "~4.2.0",
     "adapter.js": "*",
-    "kurento-utils": "~5.0.4"
+    "kurento-utils": "~5.0.4",
+    "screenfull": "~2.0.0"
   },
   "exportsOverride": {
     "adapter.js": {
@@ -23,6 +24,9 @@
     },
     "kurento-utils": {
       "js": "js/kurento-utils.min.js"
+    },
+    "screenfull": {
+      "js": "dist/screenfull.js"
     },
     "mock-socket": {}
   },
