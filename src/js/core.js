@@ -49,13 +49,12 @@ window.Widget = (function () {
             .tooltip({
                 'title': function title() {
                     if ($(this).hasClass('minim')) {
-                        return 'Minimize the widget';
+                        return 'Minimize';
                     } else {
-                        return 'Maximize the widget';
+                        return 'Maximize';
                     }
                 }
             });
-
 
         this.buttonMuteMicro = $('<button>').addClass('btn btn-info btn-circle')
             .append(this.iconMuteMicro)
@@ -769,7 +768,7 @@ window.Widget = (function () {
             updateState.call(this, state.ANSWERING);
             $('#incoming-user').text(this.callername);
             this.incomingCallModal.modal('show');
-            setIntervalX(noop, 2000, 5, incomingCallTimeout.bind(this));
+            setIntervalX(noop, 3000, 10, incomingCallTimeout.bind(this));
         }
     };
 
@@ -785,7 +784,7 @@ window.Widget = (function () {
             'to': this.peername,
             'sdpOffer': offerSdp
         });
-        setIntervalX(noop, 2000, 5, peerRequest_onHangup.bind(this));
+        setIntervalX(noop, 3000, 10, peerRequest_onHangup.bind(this));
     };
 
     /**
