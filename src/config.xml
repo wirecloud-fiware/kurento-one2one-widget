@@ -3,7 +3,7 @@
     <details>
         <title>Kurento - One2One</title>
         <authors>Jaime Pajuelo &lt;jpajuelo@conwet.com&gt;, Braulio Grana &lt;bgrana@conwet.com&gt;, Iris Muñoz &lt;imunoz@conwet.com&gt;</authors>
-        <contributors>Alvaro Arranz &lt;aaranz@conwet.com&gt;</contributors>
+        <contributors>Alvaro Arranz &lt;aaranz@conwet.com&gt;, Miguel Garcia Lafuente &lt;mgarcia@conwet.com&gt;</contributors>
         <email>wirecloud@conwet.com</email>
         <image>images/catalogue.png</image>
         <smartphoneimage>images/webrtc.png</smartphoneimage>
@@ -27,5 +27,5 @@
         <outputendpoint name="call-state" type="text" label="Call state" description="Sends the current state of the call" friendcode="call-state" />
     </wiring>
     <contents src="index.html"/>
-    <rendering width="6" height="14"/>
+    <rendering width="10" height="8"/>
 </widget>
