@@ -153,7 +153,7 @@ window.Widget = (function () {
         }.bind(this));
 
         initHandlerGroup.call(this, cameraContainer, bottomMenu);
-        updateState.call(this, state.UNREGISTERED);
+        updateState.call(this, state.UNREGISTERED, false);
     };
 
     /* ==================================================================================
@@ -221,10 +221,10 @@ window.Widget = (function () {
          */
         'close': function close() {
             if (this.server != null) {
-                if (!checkStatesAllowed.call(this, [state.UNREGISTERED])) {
-                    this.server.close();
-                    this.server = null;
-                }
+                // if (!checkStatesAllowed.call(this, [state.UNREGISTERED])) {
+                //     this.server.close();
+                //     this.server = null;
+                // }
                 this.server.close();
                 this.server = null;
             }
@@ -275,10 +275,10 @@ window.Widget = (function () {
         'reconnect': function reconnect() {
             if (checkStatesAllowed.call(this, [state.UNREGISTERED, state.REGISTERED, state.ENABLED_CALL])) {
                 if (checkStringValid(this.username) && checkStringValid(this.serverURL)) {
-                    updateState.call(this, state.REGISTERED);
                     this.close();
 
                     this.server = new WebSocket(this.serverURL);
+                    this.server.onclose = serverEvent_onClose.bind(this);
                     this.server.onopen = serverEvent_onOpen.bind(this);
                     this.server.onmessage = serverEvent_onMessage.bind(this);
                 }
@@ -370,6 +370,7 @@ window.Widget = (function () {
                     freeWebRtcPeer.call(this);
                 }.bind(this));
         }
+        cleanInterval.call(this);
         this.hasIncomingCall = false;
         this.notifyCancel = true;
         this.isTimeout = false;
@@ -582,11 +583,23 @@ window.Widget = (function () {
         'ENABLED_CALL': 5
     };
 
+    var state_from_int = {
+        0: 'BUSY_LINE',
+        1: 'CALLING',
+        2: 'ANSWERING',
+        3: 'REGISTERED',
+        4: 'UNREGISTERED',
+        5: 'ENABLED_CALL'
+    };
+
     /**
      * @private
      * @function
      */
-    var updateState = function updateState(newState) {
+    var updateState = function updateState(newState, pushEvent) {
+        if (typeof pushEvent === 'undefined') {
+            pushEvent = true;
+        }
         switch (newState) {
         case state.BUSY_LINE:
             this.buttonCall.attr('disabled', false);
@@ -596,16 +609,13 @@ window.Widget = (function () {
             if (this.standalone) {
                 this.fieldContainer.hide();
             }
-            MashupPlatform.wiring.pushEvent('call-state', 'BUSY_LINE');
             break;
         case state.ANSWERING:
             this.banner.empty().text('Answering . . .');
-            MashupPlatform.wiring.pushEvent('call-state', 'ANSWERING');
             /* falls through */
         case state.CALLING:
             if (newState !== state.ANSWERING) {
                 this.banner.empty().text('Calling . . .');
-                MashupPlatform.wiring.pushEvent('call-state', 'CALLING');
             }
             this.buttonCall
                 .removeClass('btn-success')
@@ -639,7 +649,6 @@ window.Widget = (function () {
                 this.fieldContainer.hide();
                 this.buttonCall.attr('disabled', true);
             }
-            MashupPlatform.wiring.pushEvent('call-state', 'REGISTERED');
             break;
         case state.ENABLED_CALL:
             centerButtonCanCall.call(this, true);
@@ -650,20 +659,23 @@ window.Widget = (function () {
             this.localCamera.attr('src', '');
             this.remoteCamera.attr('poster', 'images/webrtc.png');
             this.spinnerManager.hide();
-            MashupPlatform.wiring.pushEvent('call-state', 'ENABLED_CALL');
             break;
         default:
+            newState = state.UNREGISTERED;
+            /* falls through */
+        case state.UNREGISTERED:
             this.buttonAccept.attr('disabled', true);
             this.buttonCall.attr('disabled', true);
             this.buttonShow.attr('disabled', true);
             this.localCamera.hide();
             this.fieldContainer.hide();
-            MashupPlatform.wiring.pushEvent('call-state', 'UNREGISTERED');
             break;
         }
 
         this.currentState = newState;
-
+        if (pushEvent) {
+            MashupPlatform.wiring.pushEvent('call-state', state_from_int[newState]);
+        }
         return this;
     };
 
@@ -768,7 +780,7 @@ window.Widget = (function () {
             updateState.call(this, state.ANSWERING);
             $('#incoming-user').text(this.callername);
             this.incomingCallModal.modal('show');
-            setIntervalX(noop, 3000, 10, incomingCallTimeout.bind(this));
+            setIntervalX.call(this, noop, 3000, 10, incomingCallTimeout.bind(this));
         }
     };
 
@@ -784,7 +796,7 @@ window.Widget = (function () {
             'to': this.peername,
             'sdpOffer': offerSdp
         });
-        setIntervalX(noop, 3000, 10, peerRequest_onHangup.bind(this));
+        setIntervalX.call(this, noop, 3000, 10, peerRequest_onHangup.bind(this));
     };
 
     /**
@@ -846,11 +858,17 @@ window.Widget = (function () {
      * @function
      */
     var serverResponse_onCall = function serverResponse_onCall(data) {
+        cleanInterval.call(this);
         switch (data.response) {
         case 'accepted':
             showResponse.call(this, 'info', 'The call was connected successfully');
             updateState.call(this, state.BUSY_LINE);
-            this.connection.processSdpAnswer(data.sdpAnswer);
+            if (typeof this.connection != "undefined") {
+                this.connection.processSdpAnswer(data.sdpAnswer);
+            } else {
+                showResponse.call(this, 'danger', "Seems that you don't have any connection.");
+                updateState.call(this, state.ENABLED_CALL);
+            }
             break;
         default:
             freeWebRtcPeer.call(this);
@@ -875,6 +893,7 @@ window.Widget = (function () {
      * @function
      */
     var serverResponse_onComplete = function serverResponse_onComplete(message) {
+        cleanInterval.call(this);
         updateState.call(this, state.BUSY_LINE);
         // Kurento Dependency: invoke when and SDP answer is received.
         if (typeof this.connection != "undefined") {
@@ -894,6 +913,10 @@ window.Widget = (function () {
             'id': 'register',
             'name': this.username
         });
+    };
+
+    var serverEvent_onClose = function serverEvent_onClose() {
+        updateState.call(this, state.UNREGISTERED);
     };
 
     /**
@@ -944,13 +967,19 @@ window.Widget = (function () {
     var setIntervalX = function setIntervalX(callback, delay, repetitions, end_f) {
         var f = end_f || noop;
         var x = 0;
-        var intervalID = window.setInterval(function () {
+        this.intervalID = window.setInterval(function () {
             callback();
             if (++x === repetitions) {
-                window.clearInterval(intervalID);
+                window.clearInterval(this.intervalID);
                 f();
             }
         }, delay);
+    };
+
+    var cleanInterval = function cleanInterval() {
+        if (typeof this.intervalID != 'undefined') {
+            window.clearInterval(this.intervalID);
+        }
     };
 
 
