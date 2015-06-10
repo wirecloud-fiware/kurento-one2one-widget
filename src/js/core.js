@@ -414,13 +414,9 @@ window.Widget = (function () {
         if (!checkStringValid(value)) {
             return false;
         }
-
-        try {
-            var parsed_url = new URL(value);
-            return ["ws:", "wss:"].indexOf(parsed_url.protocol) !== -1 && parsed_url.host !== "";
-        } catch (e) {
-            return false;
-        }
+        // var t = /^((https?|wss?):\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+        var pathrege = /^(wss?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+        return pathrege.test(value);
     };
 
     /**

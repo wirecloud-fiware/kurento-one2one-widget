@@ -230,9 +230,9 @@
             expect(test_methods.checkValidURL("")).toBeFalsy();
         });
 
-        /*it("validates correctly server urls (bad scheme definition)", function () {
+        it("validates correctly server urls (bad scheme definition)", function () {
             expect(test_methods.checkValidURL("ws:adfasd")).toBeFalsy();
-        });*/
+        });
 
         it("validates correctly server urls (valid ws url)", function () {
             expect(test_methods.checkValidURL("ws://example.com")).toBeTruthy();
