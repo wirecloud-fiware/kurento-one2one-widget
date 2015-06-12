@@ -92,6 +92,26 @@
             }, 200);
         });
 
+        it("validates correctly server urls (empty url)", function () {
+            expect(test_methods.checkValidURL("")).toBeFalsy();
+        });
+
+        it("validates correctly server urls (bad scheme definition)", function () {
+            expect(test_methods.checkValidURL("ws:adfasd")).toBeFalsy();
+        });
+
+        it("validates correctly server urls (valid ws url)", function () {
+            expect(test_methods.checkValidURL("ws://example.com")).toBeTruthy();
+        });
+
+        it("validates correctly server urls (valid wss url)", function () {
+            expect(test_methods.checkValidURL("wss://example.com")).toBeTruthy();
+        });
+
+        it("validates correctly server urls (invalid http url)", function () {
+            expect(test_methods.checkValidURL("http://example.com")).toBeFalsy();
+        });
+
         it("registers a preference callback", function () {
             var widget;
 
@@ -226,25 +246,144 @@
             }, 200);
         });
 
-        it("validates correctly server urls (empty url)", function () {
-            expect(test_methods.checkValidURL("")).toBeFalsy();
+        it("test freeWebRtc without connection", function() {
+            testStates('all', function(widget) {
+                test_methods.freeWebRtcPeer.call(widget);
+            }, function(widget) {
+                return typeof widget.connection == 'undefined';
+            }, function(widget) {
+                return typeof widget.connection == 'undefined';
+            });
         });
 
-        it("validates correctly server urls (bad scheme definition)", function () {
-            expect(test_methods.checkValidURL("ws:adfasd")).toBeFalsy();
+        it("test freeWebRtc with connection", function() {
+            // var widget;
+            var disps = {dispose: function() {}};
+            spyOn(disps, 'dispose');
+
+            testStates('all', function(widget) {
+                test_methods.freeWebRtcPeer.call(widget);
+            }, function(widget) {
+                expect(disps.dispose).toHaveBeenCalled();
+                disps.dispose.calls.reset();
+                return typeof widget.connection == 'undefined';
+            }, function(widget) {
+                widget.connection = disps;
+                return typeof widget.connection != 'undefined';
+            });
         });
 
-        it("validates correctly server urls (valid ws url)", function () {
-            expect(test_methods.checkValidURL("ws://example.com")).toBeTruthy();
+        it("test set-name with default", function() {
+            testStates(['REGISTERED', 'ENABLED_CALL'], function(widget) {
+                test_methods.performAction.call(widget, 'testname', 1);
+            }, function(widget) {
+                return widget.peername === 'testname';
+            }, function(widget) {
+                return typeof widget.peername == 'undefined';
+            });
         });
 
-        it("validates correctly server urls (valid wss url)", function () {
-            expect(test_methods.checkValidURL("wss://example.com")).toBeTruthy();
+        it("test performAction default is set name", function() {
+            testStates(['REGISTERED', 'ENABLED_CALL'], function(widget) {
+                test_methods.performAction.call(widget, 'testname', 'notreallyanaction');
+            }, function(widget) {
+                return widget.peername === 'testname';
+            }, function(widget) {
+                return typeof widget.peername == 'undefined';
+            });
         });
 
-        it("validates correctly server urls (invalid http url)", function () {
-            expect(test_methods.checkValidURL("http://example.com")).toBeFalsy();
+        it('test performAction with call peername', function() {
+            var states = ['REGISTERED', 'ENABLED_CALL'];
+            var pre_state = '';
+            testStates(states, function(widget) {
+                pre_state = widget.currentState;
+                test_methods.performAction.call(widget, 'testname', 'call-peername');
+            }, function(widget) {
+                if (states.indexOf(test_methods.state_from_int[pre_state]) != -1) {
+                    expect(kurentoUtils.WebRtcPeer.startSendRecv).toHaveBeenCalled();
+                } else {
+                    expect(kurentoUtils.WebRtcPeer.startSendRecv).not.toHaveBeenCalled();
+                }
+                if (pre_state == 1)
+                    return false;
+                return widget.currentState == test_methods.state.CALLING;
+            });
         });
+
+        it('test hangup with different name', function() {
+            var pre_state = '';
+            var disps = {dispose: function() {}};
+            spyOn(disps, 'dispose');
+            testStates('all', function(widget) {
+                pre_state = widget.currentState;
+                test_methods.performAction.call(widget, 'testname', 'hangup-peername');
+            }, function(widget) {
+                expect(disps.dispose).not.toHaveBeenCalled();
+                return widget.currentState == pre_state;
+            }, function(widget) {
+                widget.connection = disps;
+                return typeof widget.connection != 'undefined';
+            });
+        });
+
+
+        it('test hangup with the same name', function() {
+            var states = ['CALLING', 'BUSY_LINE'];
+            var pre_state = '';
+            var disps = {dispose: function() {}};
+            spyOn(disps, 'dispose');
+            testStates(states, function(widget) {
+                pre_state = widget.currentState;
+                test_methods.performAction.call(widget, 'testname', 'hangup-peername');
+            }, function(widget) {
+                if (states.indexOf(test_methods.state_from_int[pre_state]) != -1) {
+                    expect(disps.dispose).toHaveBeenCalled();
+                    disps.dispose.calls.reset();
+                } else {
+                    expect(disps.dispose).not.toHaveBeenCalled();
+                }
+                if (pre_state == 5)
+                    return false;
+                return widget.currentState == test_methods.state.ENABLED_CALL;
+            }, function(widget) {
+                widget.peername = 'testname';
+                widget.connection = disps;
+                return typeof widget.connection != 'undefined';
+            });
+        });
+
+        /**
+         * Test with all the states!
+         * statesTrue: List of states where the condition will be true
+         * f: Function to call after the initialization
+         * condition: post-condition to test
+         * prec: Pre-condition to test, can de undefined
+         */
+        function testStates(statesTrue, f, condition, prec) {
+            var i, widget;
+            var all = Object.keys(test_methods.state);
+            prec = prec || function(widget) {return true;}; // default precondition
+            // if statesTrue it's not an array, have to be done in all states
+            statesTrue = (statesTrue.constructor === Array ) ? statesTrue : all;
+            for (i in test_methods.state_from_int) {
+                // INITIALIZATION
+                widget = new Widget('#jasmine-fixtures', '#incoming-modal');
+                widget.reload();
+                kurentoUtils.WebRtcPeer.startSendRecv.calls.reset(); // Reset :)
+                // UPDATE TO THE NEW STATE
+                var val = test_methods.state_from_int[i];
+                widget = test_methods.updateState.call(widget, test_methods.state[val], false);
+                // PRECONDITION
+                expect(prec(widget)).toBeTruthy();
+                // MAIN FUNCTION
+                f(widget);
+                // POST CONDITION
+                var res = condition(widget);
+                // CHECK THE POST IN THE CORRECT STATE
+                expect(res == (statesTrue.indexOf(val) != -1)).toBeTruthy();
+            }
+        }
 
     });
 })();

@@ -414,7 +414,7 @@ window.Widget = (function () {
         if (!checkStringValid(value)) {
             return false;
         }
-        // var t = /^((https?|wss?):\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+        // var pathrege = /^((https?|wss?):\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
         var pathrege = /^(wss?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
         return pathrege.test(value);
     };
@@ -566,10 +566,6 @@ window.Widget = (function () {
         return this;
     };
 
-    /**
-     * @private
-     * @function
-     */
     var state = {
         'BUSY_LINE': 0,
         'CALLING': 1,
@@ -579,14 +575,11 @@ window.Widget = (function () {
         'ENABLED_CALL': 5
     };
 
-    var state_from_int = {
-        0: 'BUSY_LINE',
-        1: 'CALLING',
-        2: 'ANSWERING',
-        3: 'REGISTERED',
-        4: 'UNREGISTERED',
-        5: 'ENABLED_CALL'
-    };
+    // Construct the inverse array :)
+    var state_from_int = {};
+    for (var i in state) {
+        state_from_int[state[i]] = i;
+    }
 
     /**
      * @private
@@ -667,7 +660,6 @@ window.Widget = (function () {
             this.fieldContainer.hide();
             break;
         }
-
         this.currentState = newState;
         if (pushEvent) {
             MashupPlatform.wiring.pushEvent('call-state', state_from_int[newState]);
@@ -983,7 +975,12 @@ window.Widget = (function () {
     /* test-code */
     window.test_methods = {
         peerRequest_onIncomingCall: peerRequest_onIncomingCall,
-        checkValidURL: checkValidURL
+        checkValidURL: checkValidURL,
+        freeWebRtcPeer: freeWebRtcPeer,
+        performAction: performAction,
+        updateState: updateState,
+        state: state,
+        state_from_int: state_from_int
     };
     /* end-test-code */
 
