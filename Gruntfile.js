@@ -191,10 +191,17 @@ module.exports = function (grunt) {
                     }
                 }
             }
+        },
+
+        wirecloud: {
+            publish: {
+                file: 'build/<%= pkg.vendor %>_<%= pkg.name %>_<%= pkg.version %>-dev.wgt'
+            }
         }
 
     });
 
+    grunt.loadNpmTasks('grunt-wirecloud');
     grunt.loadNpmTasks('grunt-bower-task');
     grunt.loadNpmTasks('grunt-contrib-compress');
     grunt.loadNpmTasks('grunt-contrib-copy');
@@ -222,4 +229,8 @@ module.exports = function (grunt) {
         'compress:widget'
     ]);
 
+    grunt.registerTask('publish', [
+        'default',
+        'wirecloud'
+    ]);
 };
