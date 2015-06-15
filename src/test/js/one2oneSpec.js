@@ -235,8 +235,7 @@
             test_methods.peerRequest_onIncomingCall.call(widget, {'from': "test1"});
             expect(widget.callername).toEqual("test1");
 
-            widget.callAccepted = true;
-            widget.incomingCallModal.modal('hide');
+            widget.acceptIncomingCall();
 
             async_interval = setInterval(function() {
                 if (widget.currentState === 0) { //BUSY_LINE
@@ -350,6 +349,41 @@
                 widget.peername = 'testname';
                 widget.connection = disps;
                 return typeof widget.connection != 'undefined';
+            });
+        });
+
+        it("Don't cancel if not call", function() {
+            var pre_state = '';
+            testStates('all', function(widget){
+                pre_state = widget.currentState;
+                widget.cancelIncomingCall.call(widget);
+            }, function(widget){
+                return widget.currentState == pre_state;
+            });
+        });
+
+        it('cancel the incoming ', function() {
+            var states = ['CALLING', 'ANSWERING', 'BUSY_LINE'];
+            var pre_state = '';
+            var disps = {dispose: function() {}};
+            spyOn(disps, 'dispose');
+            testStates('all', function(widget) {
+                pre_state = widget.currentState;
+                widget.cancelIncomingCall.call(widget);
+                test_methods.answerIncomingCall.call(widget);
+            }, function(widget) {
+                if (states.indexOf(test_methods.state_from_int[pre_state]) != -1) {
+                    expect(disps.dispose).toHaveBeenCalled();
+                    return widget.currentState == test_methods.state.REGISTERED;
+                } else {
+                    expect(disps.dispose).not.toHaveBeenCalled();
+                    return widget.currentState == pre_state;
+                }
+            }, function(widget) {
+                disps.dispose.calls.reset();
+                widget.connection = disps;
+                widget.hasIncomingCall = true;
+                return typeof widget.connection != 'undefined' && widget.hasIncomingCall;
             });
         });
 

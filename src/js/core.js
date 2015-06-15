@@ -330,6 +330,9 @@ window.Widget = (function () {
      * @function
      */
     var answerIncomingCall = function answerIncomingCall() {
+        if (!checkStatesAllowed.call(this, [state.CALLING, state.ANSWERING, state.BUSY_LINE])) {
+            return this;
+        }
         if (!this.callAccepted) {
             if (this.notifyCancel) {
                 sendMessage.call(this, {
@@ -343,6 +346,11 @@ window.Widget = (function () {
                 }
             } else {
                 showResponse.call(this, 'danger', "User <strong>" + this.callername + "</strong> hanged up the call for don't accept in time.");
+            }
+            if (checkStringValid(this.peername)) {
+                updateState.call(this, state.ENABLED_CALL);
+            } else {
+                updateState.call(this, state.REGISTERED);
             }
             freeWebRtcPeer.call(this);
             delete this.callername;
@@ -752,7 +760,7 @@ window.Widget = (function () {
      * @private
      * @function
      */
-    var peerRequest_onIncomingCall = function peerRequest_onIncomingCall(message) {
+    var peerRequest_onIncomingCall = function rRequest_onIncomingCall(message) {
         if (checkStatesAllowed.call(this, [state.CALLING, state.ANSWERING, state.BUSY_LINE])) {
             sendMessage.call(this, {
                 id: 'incomingCallResponse',
@@ -915,10 +923,14 @@ window.Widget = (function () {
         switch (data.response) {
         case 'accepted':
             showResponse.call(this, 'info', 'You were registered successfully');
-            if (checkStringValid(this.peername)) {
-                updateState.call(this, state.ENABLED_CALL);
+            if (checkStatesAllowed.call(this, [state.UNREGISTERED])) {
+                if (checkStringValid(this.peername)) {
+                    updateState.call(this, state.ENABLED_CALL);
+                } else {
+                    updateState.call(this, state.REGISTERED);
+                }
             } else {
-                updateState.call(this, state.REGISTERED);
+                MashupPlatform.widget.log('You received another name while having one: ' + this.peername);
             }
             break;
         default:
@@ -979,6 +991,7 @@ window.Widget = (function () {
         freeWebRtcPeer: freeWebRtcPeer,
         performAction: performAction,
         updateState: updateState,
+        answerIncomingCall: answerIncomingCall,
         state: state,
         state_from_int: state_from_int
     };
