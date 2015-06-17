@@ -274,7 +274,7 @@ window.Widget = (function () {
          */
         'reconnect': function reconnect() {
             if (checkStatesAllowed.call(this, [state.UNREGISTERED, state.REGISTERED, state.ENABLED_CALL])) {
-                if (checkStringValid(this.username) && checkStringValid(this.serverURL)) {
+                if (checkStringValid(this.username) && checkValidURL(this.serverURL)) {
                     this.close();
 
                     this.server = new WebSocket(this.serverURL);
@@ -411,7 +411,7 @@ window.Widget = (function () {
      * @function
      */
     var checkStringValid = function checkStringValid(value) {
-        return typeof value === 'string' && value.length;
+        return typeof value === 'string' && value.length > 0;
     };
 
     /**
@@ -519,7 +519,7 @@ window.Widget = (function () {
             this.notifyCancel = true;
             this.isTimeout = false;
             this.cancelIncomingCall.call(this);
-            updateState.call(this, state.ENABLED_CALL);
+            updateState.call(this, state.ENABLED_CALL); // answerIncomingCall do this
             freeWebRtcPeer.call(this);
         }.bind(this));
 
@@ -751,7 +751,7 @@ window.Widget = (function () {
             this.notifyCancel = true;
             this.isTimeout = true;
             this.cancelIncomingCall.call(this);
-            updateState.call(this, state.ENABLED_CALL);
+            // updateState.call(this, state.ENABLED_CALL); // answerIncomingCall do this
             freeWebRtcPeer.call(this);
         }
     };
@@ -987,13 +987,17 @@ window.Widget = (function () {
     /* test-code */
     window.test_methods = {
         peerRequest_onIncomingCall: peerRequest_onIncomingCall,
+        peerRequest_onHangup: peerRequest_onHangup,
+        incomingCallTimeout: incomingCallTimeout,
         checkValidURL: checkValidURL,
         freeWebRtcPeer: freeWebRtcPeer,
         performAction: performAction,
         updateState: updateState,
         answerIncomingCall: answerIncomingCall,
+        buttonMuteToggle: buttonMuteToggle,
         state: state,
-        state_from_int: state_from_int
+        state_from_int: state_from_int,
+        peernameFieldCanShow: peernameFieldCanShow
     };
     /* end-test-code */
 
