@@ -497,40 +497,143 @@
             });
         });
 
-        // it("test buttomMuteToggle", function() {
-        //     var btn1 = {hasClass: function(a) {return true;}, removeClass: function() {}, addClass: function() {}};
-        //     spyOn(btn1, 'hasClass');
-        //     spyOn(btn1, 'removeClass');
-        //     spyOn(btn1, 'addClass');
-        //     var btn2 = {hasClass: function(a) {return false;}, removeClass: function() {}, addClass: function() {}};
-        //     spyOn(btn2, 'hasClass');
-        //     spyOn(btn2, 'removeClass');
-        //     spyOn(btn2, 'addClass');
-        //     var act = {hide: function(){}, show: function(){}};
-        //     spyOn(act, 'hide');
-        //     spyOn(act, 'show');
-        //     var act2 = {hide: function(){}, show: function(){}};
-        //     spyOn(act2, 'hide');
-        //     spyOn(act2, 'show');
+        it("test buttomMuteToggle", function() {
+            var btn1 = {hasClass: function(a) {return true;}, removeClass: function() {}, addClass: function() {}};
+            spyOn(btn1, 'hasClass').and.callThrough();
+            spyOn(btn1, 'removeClass');
+            spyOn(btn1, 'addClass');
+            var btn2 = {hasClass: function(a) {return false;}, removeClass: function() {}, addClass: function() {}};
+            spyOn(btn2, 'hasClass').and.callThrough();
+            spyOn(btn2, 'removeClass');
+            spyOn(btn2, 'addClass');
+            var act = {hide: function(){}, show: function(){}};
+            spyOn(act, 'hide');
+            spyOn(act, 'show');
+            var act2 = {hide: function(){}, show: function(){}};
+            spyOn(act2, 'hide');
+            spyOn(act2, 'show');
 
-        //     var fcall = function(btn) {
-        //         return function(widget) {
-        //             test_methods.buttonMuteToggle(btn, act, act2);
-        //         };
-        //     };
+            var fcall = function(btn) {
+                return function(widget) {
+                    test_methods.buttonMuteToggle(btn, act, act2);
+                };
+            };
 
-        //     var fcheck = function(btn, f1, f2, f3) {
-        //         return function(widget) {
-        //             expect(btn[f1]).toHaveBeenCalledWith('active');
-        //             expect(act[f2]).toHaveBeenCalled();
-        //             expect(act2[f3]).toHaveBeenCalled();
-        //             return true;
-        //         };
-        //     };
-        //     testStates('all', fcall(btn1), fcheck(btn1, 'removeClass', 'show', 'hide'));
-        //     testStates('all', fcall(btn2), fcheck(btn2, 'addClass', 'hide', 'show'));
+            var fcheck = function(btn, f1, f2, f3) {
+                return function(widget) {
+                    expect(btn.hasClass).toHaveBeenCalledWith('active');
+                    expect(btn[f1]).toHaveBeenCalledWith('active');
+                    expect(act[f2]).toHaveBeenCalled();
+                    expect(act2[f3]).toHaveBeenCalled();
+                    btn.hasClass.calls.reset();
+                    btn[f1].calls.reset();
+                    act[f2].calls.reset();
+                    act2[f3].calls.reset();
+                    return true;
+                };
+            };
+
+            testStates('all', fcall(btn1), fcheck(btn1, 'removeClass', 'show', 'hide'));
+            testStates('all', fcall(btn2), fcheck(btn2, 'addClass', 'hide', 'show'));
+        });
+
+
+        it("test toggleRemoteSound with getRemoteStreams", function(){
+            var audiotrack = {enabled: true};
+            var stream = {getAudioTracks: function() {return [audiotrack];}};
+            var connection = {pc: {getRemoteStreams: function() {return [stream];}}};
+            spyOn(connection.pc, 'getRemoteStreams').and.callThrough();
+            spyOn(stream, 'getAudioTracks').and.callThrough();
+            testStates('all', function(widget) {
+                test_methods.toggleRemoteSound.call(widget);
+            }, function(widget) {
+                expect(connection.pc.getRemoteStreams).toHaveBeenCalled();
+                expect(stream.getAudioTracks).toHaveBeenCalled();
+                expect(audiotrack.enabled).toBeFalsy();
+                return true;
+            }, function(widget) {
+                connection.pc.getRemoteStreams.calls.reset();
+                stream.getAudioTracks.calls.reset();
+                audiotrack.enabled = true;
+                widget.connection = connection;
+                return typeof widget.connection != 'undefined';
+            });
+        });
+
+
+        it("test toggleRemoteSound with getRemoteStream", function(){
+            var audiotrack = {enabled: true};
+            var stream = {getAudioTracks: function() {return [audiotrack];}};
+            var connection = {pc: {getRemoteStreams: function() {return [];}},
+                              getRemoteStream: function() {return stream;}
+                             };
+            spyOn(connection.pc, 'getRemoteStreams').and.callThrough();
+            spyOn(connection, 'getRemoteStream').and.callThrough();
+            spyOn(stream, 'getAudioTracks').and.callThrough();
+            testStates('all', function(widget) {
+                test_methods.toggleRemoteSound.call(widget);
+            }, function(widget) {
+                expect(connection.pc.getRemoteStreams).toHaveBeenCalled();
+                expect(connection.getRemoteStream).toHaveBeenCalled();
+                expect(stream.getAudioTracks).toHaveBeenCalled();
+                expect(audiotrack.enabled).toBeFalsy();
+                return true;
+            }, function(widget) {
+                connection.pc.getRemoteStreams.calls.reset();
+                connection.getRemoteStream.calls.reset();
+                stream.getAudioTracks.calls.reset();
+                audiotrack.enabled = true;
+                widget.connection = connection;
+                return typeof widget.connection != 'undefined';
+            });
+        });
+
+        it("test toggleRemoteSound without remoteStream", function(){
+            var audiotrack = {enabled: true};
+            var stream = {getAudioTracks: function() {return [audiotrack];}};
+            var connection = {pc: {getRemoteStreams: function() {return [];}}
+                             };
+            spyOn(connection.pc, 'getRemoteStreams').and.callThrough();
+            spyOn(stream, 'getAudioTracks').and.callThrough();
+            testStates('all', function(widget) {
+                test_methods.toggleRemoteSound.call(widget);
+            }, function(widget) {
+                expect(connection.pc.getRemoteStreams).toHaveBeenCalled();
+                expect(stream.getAudioTracks).not.toHaveBeenCalled();
+                expect(audiotrack.enabled).toBeTruthy();
+                return true;
+            }, function(widget) {
+                connection.pc.getRemoteStreams.calls.reset();
+                stream.getAudioTracks.calls.reset();
+                audiotrack.enabled = true;
+                widget.connection = connection;
+                return typeof widget.connection != 'undefined';
+            });
+        });
+
+
+        // it("test toggleRemoteSound without connection", function(){
+        //     var audiotrack = {enabled: true};
+        //     var stream = {getAudioTracks: function() {return [audiotrack];}};
+        //     var connection = {pc: {getRemoteStreams: function() {return [];}}
+        //                      };
+        //     spyOn(connection.pc, 'getRemoteStreams').and.callThrough();
+        //     spyOn(stream, 'getAudioTracks').and.callThrough();
+        //     testStates('all', function(widget) {
+        //         test_methods.toggleRemoteSound.call(widget);
+        //     }, function(widget) {
+        //         expect(connection.pc.getRemoteStreams).not.toHaveBeenCalled();
+        //         expect(stream.getAudioTracks).not.toHaveBeenCalled();
+        //         expect(audiotrack.enabled).toBeTruthy();
+        //         return true;
+        //     }, function(widget) {
+        //         connection.pc.getRemoteStreams.calls.reset();
+        //         stream.getAudioTracks.calls.reset();
+        //         audiotrack.enabled = true;
+        //         widget.connection = undefined;
+        //         return typeof widget.connection === 'undefined';
+        //     });
         // });
-
 
         it('cancel the incoming call', function() {
             var states = ['CALLING', 'ANSWERING', 'BUSY_LINE'];
@@ -682,6 +785,7 @@
                 // INITIALIZATION
                 widget = new Widget('#jasmine-fixtures', '#incoming-modal');
                 widget.reload();
+
                 kurentoUtils.WebRtcPeer.startSendRecv.calls.reset(); // Reset :)
                 // UPDATE TO THE NEW STATE
                 var val = test_methods.state_from_int[i];

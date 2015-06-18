@@ -995,6 +995,7 @@ window.Widget = (function () {
         updateState: updateState,
         answerIncomingCall: answerIncomingCall,
         buttonMuteToggle: buttonMuteToggle,
+        toggleRemoteSound: toggleRemoteSound,
         state: state,
         state_from_int: state_from_int,
         peernameFieldCanShow: peernameFieldCanShow
