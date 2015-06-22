@@ -809,13 +809,24 @@ window.Widget = (function () {
         updateState.call(this, state.ENABLED_CALL);
     };
 
+    var isType = function isType(prop, name) {
+        var getType = {};
+        return prop && getType.toString.call(prop) === name;
+    };
+
+    var checkProperty = function checkProperty(obj, prop, name) {
+        name = name || '[object Function]';
+        return (typeof obj != 'undefined' && obj && isType(obj[prop], name));
+    };
+
     /**
      * @private
      * @function
      */
     var sendMessage = function sendMessage(data) {
-        this.server.send(JSON.stringify(data));
-
+        if (checkProperty(this.server, 'send')) {
+            this.server.send(JSON.stringify(data));
+        }
         return this;
     };
 

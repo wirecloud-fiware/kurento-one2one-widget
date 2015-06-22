@@ -14,13 +14,41 @@
  * limitations under the License.
  */
 
-/*global $, kurentoUtils, test_methods*/
+/*global $, kurentoUtils, test_methods, MockMP*/
 
 (function () {
 
     "use strict";
 
     jasmine.getFixtures().fixturesPath = 'src/test/fixtures/';
+
+    var contextStrategy = MockMP.strategy.dict({
+        'username': 'user1'
+    });
+
+    var preferencesStandalone = {
+        'server-url': 'ws://kurento.example.com',
+        'stand-alone': true
+    };
+
+    var preferencesNotStandalone = {
+        'server-url': 'ws://kurento.example.com',
+        'stand-alone': false
+    };
+
+    var mashupPlatformStandalone = new MockMP.MockMP({
+        "context.get": contextStrategy,
+        "prefs.get": MockMP.strategy.dict(preferencesStandalone)
+    });
+
+    var mashupPlatformNotStandalone = new MockMP.MockMP({
+        "context.get": contextStrategy,
+        "prefs.get": MockMP.strategy.dict(preferencesNotStandalone)
+    });
+
+    var setTestStrategy = function setTestStrategy(strat) {
+        window.MashupPlatform = strat;
+    };
 
     var dependencyList = [
         'script',
@@ -44,17 +72,16 @@
         return null;
     };
 
-    describe("Kurento one2one widget", function () {
+    setTestStrategy(mashupPlatformNotStandalone);
 
-        var context = {
-            'username': 'user1'
-        };
+    describe("Kurento one2one widget", function () {
         var async_interval = null;
 
         beforeEach(function () {
             loadFixtures('index.html');
-            MashupPlatform.prefs.registerCallback.calls.reset();
-            MashupPlatform.wiring.registerCallback.calls.reset();
+            mashupPlatformNotStandalone.reset();
+            mashupPlatformStandalone.reset();
+            setTestStrategy(mashupPlatformNotStandalone);
             kurentoUtils.withErrors = false;
         });
 
@@ -67,25 +94,15 @@
         });
 
         it("loads correctly when configured on standalone mode", function (done) {
-            var preferences, widget;
-
-            preferences = {
-                'server-url': 'ws://kurento.example.com',
-                'stand-alone': false
-            };
-
-            MashupPlatform.setStrategy(new MyStrategy(), {
-                "MashupPlatform.context.get": context,
-                "MashupPlatform.prefs.get": preferences
-            });
+            var widget;
 
             widget = new Widget('#jasmine-fixtures', '#incoming-modal');
             widget.reload();
 
-            setInterval(function () {
+            async_interval = setInterval(function () {
                 if (widget.currentState === 3) { // REGISTERED
-                    expect(widget.serverURL).toBe(preferences['server-url']);
-                    expect(widget.standalone).toBe(preferences['stand-alone']);
+                    expect(widget.serverURL).toBe(preferencesNotStandalone['server-url']);
+                    expect(widget.standalone).toBe(preferencesNotStandalone['stand-alone']);
                     expect(widget.fieldContainer.is(":visible")).toBeFalsy();
                     done();
                 }
@@ -145,17 +162,7 @@
         });
 
         it("handles correctly events comming from the user-id endpoint once the user is not standalone", function (done) {
-            var preferences, widget;
-
-            preferences = {
-                'server-url': 'ws://kurento.example.com',
-                'stand-alone': false
-            };
-
-            MashupPlatform.setStrategy(new MyStrategy(), {
-                "MashupPlatform.context.get": context,
-                "MashupPlatform.prefs.get": preferences
-            });
+            var widget;
 
             widget = new Widget('#jasmine-fixtures', '#incoming-modal');
             widget.reload();
@@ -171,18 +178,13 @@
         });
 
         it("checks that can't register a username already used", function () {
-            var preferences, widget;
+            var widget;
 
-            preferences = {
-                'server-url': 'ws://kurento.example.com',
-                'stand-alone': true
-            };
-
-            MashupPlatform.setStrategy(new MyStrategy(), {
-                "MashupPlatform.context.get": {
+            setTestStrategy(mashupPlatformStandalone);
+            MashupPlatform.setStrategy({
+                "context.get": MockMP.strategy.dict({
                     'username': "alreadyregistereduser"
-                },
-                "MashupPlatform.prefs.get": preferences
+                })
             });
 
             widget = new Widget('#jasmine-fixtures', '#incoming-modal');
@@ -192,24 +194,14 @@
         });
 
         it("disables correctly the call button when standalone is inactive", function (done) {
-           var preferences, widget;
-
-            preferences = {
-                'server-url': 'ws://kurento.example.com',
-                'stand-alone': false
-            };
-
-            MashupPlatform.setStrategy(new MyStrategy(), {
-                "MashupPlatform.context.get": context,
-                "MashupPlatform.prefs.get": preferences
-            });
+            var widget;
 
             widget = new Widget('#jasmine-fixtures', '#incoming-modal');
             widget.reload();
 
             async_interval = setInterval(function() {
                 if (widget.currentState === 3) { // REGISTERED
-                    expect(widget.standalone).toBe(preferences['stand-alone']);
+                    expect(widget.standalone).toBe(preferencesNotStandalone['stand-alone']);
                     expect(widget.buttonCall.attr('disabled')).toEqual("disabled");
                     done();
                 }
@@ -217,17 +209,7 @@
         });
 
         it("handles correctly transition between buttons in an incoming call", function (done) {
-            var preferences, widget;
-
-            preferences = {
-                'server-url': 'ws://kurento.example.com',
-                'stand-alone': false
-            };
-
-            MashupPlatform.setStrategy(new MyStrategy(), {
-                "MashupPlatform.context.get": context,
-                "MashupPlatform.prefs.get": preferences
-            });
+            var widget;
 
             widget = new Widget('#jasmine-fixtures', '#incoming-modal');
             widget.reload();
@@ -612,28 +594,28 @@
         });
 
 
-        // it("test toggleRemoteSound without connection", function(){
-        //     var audiotrack = {enabled: true};
-        //     var stream = {getAudioTracks: function() {return [audiotrack];}};
-        //     var connection = {pc: {getRemoteStreams: function() {return [];}}
-        //                      };
-        //     spyOn(connection.pc, 'getRemoteStreams').and.callThrough();
-        //     spyOn(stream, 'getAudioTracks').and.callThrough();
-        //     testStates('all', function(widget) {
-        //         test_methods.toggleRemoteSound.call(widget);
-        //     }, function(widget) {
-        //         expect(connection.pc.getRemoteStreams).not.toHaveBeenCalled();
-        //         expect(stream.getAudioTracks).not.toHaveBeenCalled();
-        //         expect(audiotrack.enabled).toBeTruthy();
-        //         return true;
-        //     }, function(widget) {
-        //         connection.pc.getRemoteStreams.calls.reset();
-        //         stream.getAudioTracks.calls.reset();
-        //         audiotrack.enabled = true;
-        //         widget.connection = undefined;
-        //         return typeof widget.connection === 'undefined';
-        //     });
-        // });
+        it("test toggleRemoteSound without connection", function(){
+            var audiotrack = {enabled: true};
+            var stream = {getAudioTracks: function() {return [audiotrack];}};
+            var connection = {pc: {getRemoteStreams: function() {return [];}}
+                             };
+            spyOn(connection.pc, 'getRemoteStreams').and.callThrough();
+            spyOn(stream, 'getAudioTracks').and.callThrough();
+            testStates('all', function(widget) {
+                test_methods.toggleRemoteSound.call(widget);
+            }, function(widget) {
+                expect(connection.pc.getRemoteStreams).not.toHaveBeenCalled();
+                expect(stream.getAudioTracks).not.toHaveBeenCalled();
+                expect(audiotrack.enabled).toBeTruthy();
+                return true;
+            }, function(widget) {
+                connection.pc.getRemoteStreams.calls.reset();
+                stream.getAudioTracks.calls.reset();
+                audiotrack.enabled = true;
+                widget.connection = undefined;
+                return typeof widget.connection === 'undefined';
+            });
+        });
 
         it('cancel the incoming call', function() {
             var states = ['CALLING', 'ANSWERING', 'BUSY_LINE'];
@@ -785,6 +767,7 @@
                 // INITIALIZATION
                 widget = new Widget('#jasmine-fixtures', '#incoming-modal');
                 widget.reload();
+                widget.server = {send: function() {}, close: function(){}};
 
                 kurentoUtils.WebRtcPeer.startSendRecv.calls.reset(); // Reset :)
                 // UPDATE TO THE NEW STATE

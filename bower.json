@@ -1,36 +1,38 @@
 {
-  "name": "widget-one2one-call",
-  "dependencies": {
-    "bootstrap": "~3.2.0",
-    "fontawesome": "~4.2.0",
-    "adapter.js": "*",
-    "kurento-utils": "~5.0.4",
-    "screenfull": "~2.0.0"
-  },
-  "exportsOverride": {
-    "adapter.js": {
-      "js": "adapter.js"
+    "name": "widget-one2one-call",
+    "dependencies": {
+        "bootstrap": "~3.2.0",
+        "fontawesome": "~4.2.0",
+        "adapter.js": "*",
+        "kurento-utils": "~5.0.4",
+        "screenfull": "~2.0.0",
+        "mock-applicationmashup": "~0.0.3"
     },
-    "jquery": {
-      "js": "dist/jquery.min.js"
+    "exportsOverride": {
+        "adapter.js": {
+            "js": "adapter.js"
+        },
+        "jquery": {
+            "js": "dist/jquery.min.js"
+        },
+        "bootstrap": {
+            "css": "dist/css/bootstrap.min.css",
+            "js": "dist/js/bootstrap.min.js"
+        },
+        "fontawesome": {
+            "css": "css/font-awesome.min.css",
+            "fonts": "fonts/*"
+        },
+        "kurento-utils": {
+            "js": "js/kurento-utils.min.js"
+        },
+        "screenfull": {
+            "js": "dist/screenfull.js"
+        },
+        "mock-applicationmashup": {},
+        "mock-socket": {}
     },
-    "bootstrap": {
-      "css": "dist/css/bootstrap.min.css",
-      "js": "dist/js/bootstrap.min.js"
-    },
-    "fontawesome": {
-      "css": "css/font-awesome.min.css",
-      "fonts": "fonts/*"
-    },
-    "kurento-utils": {
-      "js": "js/kurento-utils.min.js"
-    },
-    "screenfull": {
-      "js": "dist/screenfull.js"
-    },
-    "mock-socket": {}
-  },
-  "devDependencies": {
-    "mock-socket": "~0.0.8"
-  }
+    "devDependencies": {
+        "mock-socket": "~0.5.0"
+    }
 }
