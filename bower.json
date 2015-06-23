@@ -6,7 +6,7 @@
         "adapter.js": "*",
         "kurento-utils": "~5.0.4",
         "screenfull": "~2.0.0",
-        "mock-applicationmashup": "~0.0.3"
+        "mock-applicationmashup": "~0.0.4"
     },
     "exportsOverride": {
         "adapter.js": {
@@ -24,7 +24,7 @@
             "fonts": "fonts/*"
         },
         "kurento-utils": {
-            "js": "js/kurento-utils.min.js"
+            "js": ["js/kurento-utils.js", "js/kurento-utils.map"]
         },
         "screenfull": {
             "js": "dist/screenfull.js"
