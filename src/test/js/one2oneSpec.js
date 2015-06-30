@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-/*global $, kurentoUtils, test_methods, MockMP*/
+/*global $, kurentoUtils, test_methods, MockMP, beforeAll*/
 
 (function () {
 
@@ -36,18 +36,14 @@
         'stand-alone': false
     };
 
-    var mashupPlatformStandalone = new MockMP.MockMP({
+    var standaloneValues = {
         "context.get": contextStrategy,
         "prefs.get": MockMP.strategy.dict(preferencesStandalone)
-    });
+    };
 
-    var mashupPlatformNotStandalone = new MockMP.MockMP({
+    var notStandaloneValues = {
         "context.get": contextStrategy,
         "prefs.get": MockMP.strategy.dict(preferencesNotStandalone)
-    });
-
-    var setTestStrategy = function setTestStrategy(strat) {
-        window.MashupPlatform = strat;
     };
 
     var dependencyList = [
@@ -72,17 +68,80 @@
         return null;
     };
 
-    setTestStrategy(mashupPlatformNotStandalone);
+    window.MashupPlatform = new MockMP.MockMP(notStandaloneValues);
 
-    describe("Kurento one2one widget", function () {
+    describe("Standalone tests", function() {
         var async_interval = null;
+        var widget;
+        beforeAll(function() {
+            async_interval = null;
+            window.MashupPlatform = new MockMP.MockMP(standaloneValues);
+        });
+
+        beforeEach(function() {
+            loadFixtures('index.html');
+            MashupPlatform.reset();
+            kurentoUtils.withErrors = false;
+            widget = new Widget('#jasmine-fixtures', '#incoming-modal');
+            widget.reload();
+        });
+
+        afterEach(function() {
+            clearDocument();
+            if (async_interval != null) {
+                clearTimeout(async_interval);
+                async_interval = null;
+            }
+        });
+
+        it("loads correctly when configured on standalone mode", function(done) {
+            async_interval = setInterval(function () {
+                if (widget.currentState === 3) { // REGISTERED
+                    expect(widget.serverURL).toBe(preferencesStandalone['server-url']);
+                    expect(widget.standalone).toBe(preferencesStandalone['stand-alone']);
+                    expect(widget.fieldContainer.is(":visible")).toBeFalsy();
+                    done();
+                }
+            }, 200);
+        });
+
+        it("checks that can't register a username already used", function () {
+            var widget;
+            MashupPlatform.setStrategy({
+                "context.get": MockMP.strategy.dict({
+                    'username': "alreadyregistereduser"
+                })
+            });
+            widget = new Widget('#jasmine-fixtures', '#incoming-modal');
+            expect(widget.currentState).toBe(4); // UNREGISTERED
+        });
+
+        it("receive from wiring peername", function(done) {
+            async_interval = setInterval(function () {
+                if (widget.currentState === 3) { // REGISTERED
+                    expect(widget.peername).toBeUndefined();
+                    MashupPlatform.simulateReceiveEvent('user-id', 'testname');
+                    expect(widget.peername).toBe('testname');
+                    done();
+                }
+            }, 200);
+        });
+
+    });
+
+    describe("Not standalone and generic tests", function () {
+        var async_interval = null;
+        var widget;
+        beforeAll(function() {
+            window.MashupPlatform = new MockMP.MockMP(notStandaloneValues);
+        });
 
         beforeEach(function () {
+            MashupPlatform.reset();
             loadFixtures('index.html');
-            mashupPlatformNotStandalone.reset();
-            mashupPlatformStandalone.reset();
-            setTestStrategy(mashupPlatformNotStandalone);
             kurentoUtils.withErrors = false;
+            widget = new Widget('#jasmine-fixtures', '#incoming-modal');
+            widget.reload();
         });
 
         afterEach(function () {
@@ -93,21 +152,6 @@
             }
         });
 
-        it("loads correctly when configured on standalone mode", function (done) {
-            var widget;
-
-            widget = new Widget('#jasmine-fixtures', '#incoming-modal');
-            widget.reload();
-
-            async_interval = setInterval(function () {
-                if (widget.currentState === 3) { // REGISTERED
-                    expect(widget.serverURL).toBe(preferencesNotStandalone['server-url']);
-                    expect(widget.standalone).toBe(preferencesNotStandalone['stand-alone']);
-                    expect(widget.fieldContainer.is(":visible")).toBeFalsy();
-                    done();
-                }
-            }, 200);
-        });
 
         it("validates correctly server urls (empty url)", function () {
             expect(test_methods.checkValidURL("")).toBeFalsy();
@@ -130,27 +174,14 @@
         });
 
         it("registers a preference callback", function () {
-            var widget;
-
-            widget = new Widget('#jasmine-fixtures', '#incoming-modal');
-
             expect(MashupPlatform.prefs.registerCallback).toHaveBeenCalledWith(jasmine.any(Function));
         });
 
         it("registers a callback for the user-id endpoint", function () {
-            var widget;
-
-            widget = new Widget('#jasmine-fixtures', '#incoming-modal');
-
             expect(MashupPlatform.wiring.registerCallback).toHaveBeenCalledWith("user-id", jasmine.any(Function));
         });
 
         it("handles correctly events comming from the user-id endpoint once the user is registered", function (done) {
-            var widget;
-
-            widget = new Widget('#jasmine-fixtures', '#incoming-modal');
-            widget.reload();
-
             async_interval = setInterval(function () {
                 if (widget.currentState === 3) { // REGISTERED
                     var callback = getWiringCallback("user-id");
@@ -162,11 +193,6 @@
         });
 
         it("handles correctly events comming from the user-id endpoint once the user is not standalone", function (done) {
-            var widget;
-
-            widget = new Widget('#jasmine-fixtures', '#incoming-modal');
-            widget.reload();
-
             async_interval = setInterval(function () {
                 if (widget.currentState === 3) { // REGISTERED
                     var callback = getWiringCallback("user-id");
@@ -177,43 +203,7 @@
             }, 200);
         });
 
-        it("checks that can't register a username already used", function () {
-            var widget;
-
-            setTestStrategy(mashupPlatformStandalone);
-            MashupPlatform.setStrategy({
-                "context.get": MockMP.strategy.dict({
-                    'username': "alreadyregistereduser"
-                })
-            });
-
-            widget = new Widget('#jasmine-fixtures', '#incoming-modal');
-
-            expect(widget.currentState).toBe(4); // UNREGISTERED
-
-        });
-
-        it("disables correctly the call button when standalone is inactive", function (done) {
-            var widget;
-
-            widget = new Widget('#jasmine-fixtures', '#incoming-modal');
-            widget.reload();
-
-            async_interval = setInterval(function() {
-                if (widget.currentState === 3) { // REGISTERED
-                    expect(widget.standalone).toBe(preferencesNotStandalone['stand-alone']);
-                    expect(widget.buttonCall.attr('disabled')).toEqual("disabled");
-                    done();
-                }
-            }, 200);
-        });
-
         it("handles correctly transition between buttons in an incoming call", function (done) {
-            var widget;
-
-            widget = new Widget('#jasmine-fixtures', '#incoming-modal');
-            widget.reload();
-
             test_methods.peerRequest_onIncomingCall.call(widget, {'from': "test1"});
             expect(widget.callername).toEqual("test1");
 
@@ -254,7 +244,7 @@
 
         it("don't do nothing is receivePeerName is invalid", function() {
             testStates('all', function(widget) {
-                widget.receivePeername.call('', '');
+                MashupPlatform.simulateReceiveEvent('user-id', '');
             }, function(widget) {
                 return widget.peername == null;
             });
@@ -359,7 +349,7 @@
         it('test performAction with call peername', function() {
             var states = ['REGISTERED', 'ENABLED_CALL'];
             testStates(states, function(widget) {
-                test_methods.performAction.call(widget, 'testname', 'call-peername');
+                MashupPlatform.simulateReceiveEvent('call-user', 'testname');
             }, function(widget, pre_state) {
                 if (states.indexOf(test_methods.state_from_int[pre_state]) != -1) {
                     expect(kurentoUtils.WebRtcPeer.startSendRecv).toHaveBeenCalled();
@@ -376,7 +366,7 @@
             var disps = {dispose: function() {}};
             spyOn(disps, 'dispose');
             testStates('all', function(widget) {
-                test_methods.performAction.call(widget, 'testname', 'hangup-peername');
+                MashupPlatform.simulateReceiveEvent('hangup-user', 'testname');
             }, function(widget, pre_state) {
                 expect(disps.dispose).not.toHaveBeenCalled();
                 return widget.currentState == pre_state;
@@ -392,7 +382,7 @@
             var disps = {dispose: function() {}};
             spyOn(disps, 'dispose');
             testStates(states, function(widget) {
-                test_methods.performAction.call(widget, 'testname', 'hangup-peername');
+                MashupPlatform.simulateReceiveEvent('hangup-user', 'testname');
             }, function(widget, pre_state) {
                 if (states.indexOf(test_methods.state_from_int[pre_state]) != -1) {
                     expect(disps.dispose).toHaveBeenCalled();
@@ -765,6 +755,7 @@
             statesTrue = (statesTrue.constructor === Array ) ? statesTrue : all;
             for (i in test_methods.state_from_int) {
                 // INITIALIZATION
+                MashupPlatform.reset();
                 widget = new Widget('#jasmine-fixtures', '#incoming-modal');
                 widget.reload();
                 widget.server = {send: function() {}, close: function(){}};
