@@ -20,7 +20,7 @@
 
     "use strict";
 
-    jasmine.getFixtures().fixturesPath = 'src/test/fixtures/';
+    jasmine.getFixtures().fixturesPath = 'base/test/fixtures/';
 
     var contextStrategy = MockMP.strategy.dict({
         'username': 'user1'

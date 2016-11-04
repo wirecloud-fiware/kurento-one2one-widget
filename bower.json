@@ -21,7 +21,7 @@
         },
         "kurento-utils": {
             "js": [
-                "js/kurento-utils.js",
+                "js/kurento-utils.min.js",
                 "js/kurento-utils.map"
             ]
         },
