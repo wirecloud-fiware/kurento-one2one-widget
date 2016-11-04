@@ -3,14 +3,11 @@
     "dependencies": {
         "bootstrap": "~3.2.0",
         "fontawesome": "~4.2.0",
-        "adapter.js": "*",
         "kurento-utils": "~5.0.4",
-        "screenfull": "~2.0.0"
+        "screenfull": "~2.0.0",
+        "webrtc-adapter": "adapter.js#2.0.6"
     },
     "exportsOverride": {
-        "adapter.js": {
-            "js": "adapter.js"
-        },
         "jquery": {
             "js": "dist/jquery.min.js"
         },
@@ -23,10 +20,16 @@
             "fonts": "fonts/*"
         },
         "kurento-utils": {
-            "js": ["js/kurento-utils.js", "js/kurento-utils.map"]
+            "js": [
+                "js/kurento-utils.js",
+                "js/kurento-utils.map"
+            ]
         },
         "screenfull": {
             "js": "dist/screenfull.js"
+        },
+        "webrtc-adapter": {
+            "js": "release/adapter.js"
         }
     },
     "devDependencies": {
