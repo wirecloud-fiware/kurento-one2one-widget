@@ -2,6 +2,7 @@
 
 - Moved from adapter.js to webrtc-adapter (v2.0.6)
 - Moved to kurento-utils v6.6.1
+- Fullscreen support
 
 ## v1.1.2
 
