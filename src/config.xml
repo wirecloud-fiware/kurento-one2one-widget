@@ -27,5 +27,5 @@
         <outputendpoint name="call-state" type="text" label="Call state" description="Sends the current state of the call" friendcode="call-state" />
     </wiring>
     <contents src="index.html"/>
-    <rendering width="10" height="8"/>
+    <rendering width="33%" height="33%"/>
 </widget>
