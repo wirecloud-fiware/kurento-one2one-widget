@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015 CoNWeT Lab., Universidad Politécnica de Madrid
+ * Copyright (c) 2014-2016 CoNWeT Lab., Universidad Politécnica de Madrid
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-/*global $, kurentoUtils, MashupPlatform, screenfull*/
-
+/* globals $, kurentoUtils, MashupPlatform, screenfull */
 
 window.Widget = (function () {
 
@@ -153,6 +152,7 @@ window.Widget = (function () {
         }.bind(this));
 
         initHandlerGroup.call(this, cameraContainer, bottomMenu);
+        this.connection = null;
         updateState.call(this, state.UNREGISTERED, false);
     };
 
@@ -189,9 +189,17 @@ window.Widget = (function () {
                 updateState.call(this, state.CALLING);
 
                 // Kurento Dependency: create a WebRtcPeer to send and receive video.
-                kurentoUtils.WebRtcPeer.startSendRecv(
-                    this.localCamera[0], this.remoteCamera[0],
-                    requestWebRtc_onSdp.bind(this), requestWebRtc_onError.bind(this));
+                this.connection = kurentoUtils.WebRtcPeer.WebRtcPeerSendrecv({
+                    localVideo: this.localCamera[0],
+                    remoteVideo: this.remoteCamera[0],
+                    onicecandidate: onicecandidate.bind(this)
+                }, function (error) {
+                    if (error) {
+                        requestWebRtc_onError.call(this, error);
+                    } else {
+                        this.connection.generateOffer(requestWebRtc_onSdp.bind(this));
+                    }
+                }.bind(this));
             }
 
             return this;
@@ -356,27 +364,22 @@ window.Widget = (function () {
             delete this.callername;
         } else {
             updateState.call(this, state.ANSWERING);
-            this.connection = kurentoUtils.WebRtcPeer.startSendRecv(this.localCamera[0], this.remoteCamera[0],
-                function (sdp, wp) {
-                    sendMessage.call(this, {
-                        id: 'incomingCallResponse',
-                        from: this.callername,
-                        callResponse: 'accept',
-                        sdpOffer: sdp
-                    });
-                    showResponse.call(this, 'info', 'The call was connected successfully');
-                    this.peername = this.callername;
-                    delete this.callername;
-                    updateState.call(this, state.BUSY_LINE);
-                }.bind(this),
-                function (error) {
+            this.connection = kurentoUtils.WebRtcPeer.WebRtcPeerSendrecv({
+                localVideo: this.localCamera[0],
+                remoteVideo: this.remoteCamera[0],
+                onicecandidate: onicecandidate.bind(this)
+            }, function (error) {
+                if (error) {
                     MashupPlatform.widget.log('TODO: ' + error);
                     updateState.call(this, state.ENABLED_CALL);
                     sendMessage.call(this, {
                         'id': 'stop'
                     });
                     freeWebRtcPeer.call(this);
-                }.bind(this));
+                } else {
+                    this.connection.generateOffer(onoffericomingcall.bind(this));
+                }
+            }.bind(this));
         }
         cleanInterval.call(this);
         this.hasIncomingCall = false;
@@ -433,9 +436,9 @@ window.Widget = (function () {
      */
     var freeWebRtcPeer = function freeWebRtcPeer() {
         // Kurento Dependency: free the resources used by WebRtcPeer.
-        if (typeof this.connection != 'undefined') {
+        if (this.connection != null) {
             this.connection.dispose();
-            delete this.connection;
+            this.connection = null;
         }
         return this;
     };
@@ -692,7 +695,7 @@ window.Widget = (function () {
 
     var toggleRemoteSound = function toggleRemoteSound() {
         var stream = null;
-        if (typeof this.connection != 'undefined') {
+        if (this.connection != null) {
             if (this.connection.pc && this.connection.pc.getRemoteStreams().length > 0) {
                 stream = this.connection.pc.getRemoteStreams()[0];
             } else if (this.connection.getRemoteStream) {
@@ -784,15 +787,27 @@ window.Widget = (function () {
      * @private
      * @function
      */
-    var requestWebRtc_onSdp = function requestWebRtc_onSdp(offerSdp, wp) {
-        this.connection = wp;
+    var requestWebRtc_onSdp = function requestWebRtc_onSdp(error, offerSdp) {
         sendMessage.call(this, {
-            'id': 'call',
-            'from': this.username,
-            'to': this.peername,
-            'sdpOffer': offerSdp
+            id: 'call',
+            from: this.username,
+            to: this.peername,
+            sdpOffer: offerSdp
         });
         setIntervalX.call(this, noop, 3000, 10, peerRequest_onHangup.bind(this));
+    };
+
+    var onoffericomingcall = function onoffericomingcall(error, sdp) {
+        sendMessage.call(this, {
+            id: 'incomingCallResponse',
+            from: this.callername,
+            callResponse: 'accept',
+            sdpOffer: sdp
+        });
+        showResponse.call(this, 'info', 'The call was connected successfully');
+        this.peername = this.callername;
+        delete this.callername;
+        updateState.call(this, state.BUSY_LINE);
     };
 
     /**
@@ -807,6 +822,7 @@ window.Widget = (function () {
             MashupPlatform.widget.log('TODO');
         }
         updateState.call(this, state.ENABLED_CALL);
+        this.connection = null;
     };
 
     var isType = function isType(prop, name) {
@@ -853,8 +869,12 @@ window.Widget = (function () {
         case 'stopCommunication':
             peerRequest_onHangup.call(this);
             break;
+        case 'iceCandidate':
+            var candidate = JSON.parse(message.sdpAnswer);
+            this.connection.addIceCandidate(candidate);
+            break;
         default:
-            MashupPlatform.widget.log('TODO');
+            MashupPlatform.widget.log('Unsupported message id: ' + message.id);
         }
 
         return this;
@@ -870,8 +890,8 @@ window.Widget = (function () {
         case 'accepted':
             showResponse.call(this, 'info', 'The call was connected successfully');
             updateState.call(this, state.BUSY_LINE);
-            if (typeof this.connection != "undefined") {
-                this.connection.processSdpAnswer(data.sdpAnswer);
+            if (this.connection != null) {
+                this.connection.processAnswer(data.sdpAnswer);
             } else {
                 showResponse.call(this, 'danger', "Seems that you don't have any connection.");
                 updateState.call(this, state.ENABLED_CALL);
@@ -903,8 +923,8 @@ window.Widget = (function () {
         cleanInterval.call(this);
         updateState.call(this, state.BUSY_LINE);
         // Kurento Dependency: invoke when and SDP answer is received.
-        if (typeof this.connection != "undefined") {
-            this.connection.processSdpAnswer(message.sdpAnswer);
+        if (this.connection != null) {
+            this.connection.processAnswer(message.sdpAnswer);
         } else {
             showResponse.call(this, 'danger', "Seems that you don't have any connection.");
             updateState.call(this, state.ENABLED_CALL);
@@ -993,7 +1013,15 @@ window.Widget = (function () {
         }
     };
 
+    var onicecandidate = function onicecandidate(candidate) {
+        window.console.log("Local candidate" + JSON.stringify(candidate));
 
+        var message = {
+            id: 'onIceCandidate',
+            sdpOffer: JSON.stringify(candidate)
+        };
+        sendMessage.call(this, message);
+    };
 
     /* test-code */
     window.test_methods = {

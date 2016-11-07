@@ -3,7 +3,7 @@
     "dependencies": {
         "bootstrap": "~3.2.0",
         "fontawesome": "~4.2.0",
-        "kurento-utils": "~5.0.4",
+        "kurento-utils": "6.6.1",
         "screenfull": "~2.0.0",
         "webrtc-adapter": "adapter.js#2.0.6"
     },
@@ -31,9 +31,5 @@
         "webrtc-adapter": {
             "js": "release/adapter.js"
         }
-    },
-    "devDependencies": {
-        "mock-socket": "~0.5.1",
-        "mock-applicationmashup": "~0.0.8"
     }
 }
