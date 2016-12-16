@@ -1,35 +1,6 @@
 {
-    "name": "widget-one2one-call",
-    "dependencies": {
-        "bootstrap": "~3.2.0",
-        "fontawesome": "~4.2.0",
-        "kurento-utils": "6.6.1",
-        "screenfull": "~2.0.0",
-        "webrtc-adapter": "adapter.js#2.0.6"
-    },
-    "exportsOverride": {
-        "jquery": {
-            "js": "dist/jquery.min.js"
-        },
-        "bootstrap": {
-            "css": "dist/css/bootstrap.min.css",
-            "js": "dist/js/bootstrap.min.js"
-        },
-        "fontawesome": {
-            "css": "css/font-awesome.min.css",
-            "fonts": "fonts/*"
-        },
-        "kurento-utils": {
-            "js": [
-                "js/kurento-utils.min.js",
-                "js/kurento-utils.map"
-            ]
-        },
-        "screenfull": {
-            "js": "dist/screenfull.js"
-        },
-        "webrtc-adapter": {
-            "js": "release/adapter.js"
-        }
-    }
+  "name": "widgetPlantilla",
+  "dependencies": {},
+  "devDependencies": {},
+  "exportsOverride": {}
 }

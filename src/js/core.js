@@ -189,6 +189,7 @@ window.Widget = (function () {
                 updateState.call(this, state.CALLING);
 
                 // Kurento Dependency: create a WebRtcPeer to send and receive video.
+                // eslint-disable-next-line
                 this.connection = kurentoUtils.WebRtcPeer.WebRtcPeerSendrecv({
                     localVideo: this.localCamera[0],
                     remoteVideo: this.remoteCamera[0],
@@ -364,6 +365,7 @@ window.Widget = (function () {
             delete this.callername;
         } else {
             updateState.call(this, state.ANSWERING);
+            // eslint-disable-next-line
             this.connection = kurentoUtils.WebRtcPeer.WebRtcPeerSendrecv({
                 localVideo: this.localCamera[0],
                 remoteVideo: this.remoteCamera[0],
