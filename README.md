@@ -49,55 +49,13 @@ grunt
 
 If everything goes well, you will find a wgt file in the `dist` folder.
 
-Settings and Usage
-------------------
+## Documentation
 
-### Preferences
-
-* `Server URL` - URL of the one 2 one server.
-* `Standalone` - Allows choose the user for calling. Default is True.
-
-### Wiring
-
-##### Input Endpoints
-
-- `Call user` - Type String. Calls the user received only if the current status
-  of the call is **registered**.
-
-- `Hang up user` - Type String. Hangs up the user received only if the current
-  status of the call is **calling** or **busy line**.
-
-  > **Note**: if user received is not the user of the call, the widget will do
-  > nothing and notify about that.
-
-##### Output Endpoints
-
-- `Call status` - Type String. Sends the current status of the call only if
-  the status is changed. The status list is the following: UNREGISTERED -
-  REGISTERED - CALLING - BUSY_LINE.
-
-### Usage
-
-##### Call/Hang Up an User
-
-Once you are registered successfully, the middle button will be available for
-calling an user. This user must be registered in the same Media Server and
-will be given through input endpoint `Call user` or text field that appears
-when the `standalone` is active.
-
-On the other hand when you are calling a user or on a call, the same button
-allows end the call.
-
-##### Show/Hide Local Webcam
-
-Whereas you are on a call, the button on the right allows show or hide your
-webcam.
-
-##### Answer/Decline an Incoming Call
-
-Finally, if an user wants to stablish a call, the widget displays a sliding
-modal which allows to you choose to answer the incoming call or decline it.
-
+Documentation about how to use this widget is available on the
+[User Guide](src/doc/userguide.md). Anyway, you can find general information
+about how to use widgets on the
+[WireCloud's User Guide](https://wirecloud.readthedocs.io/en/stable/user_guide/)
+available on Read the Docs.
 Copyright and License
 ---------------------
 

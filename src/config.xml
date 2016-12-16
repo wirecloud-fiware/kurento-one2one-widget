@@ -10,7 +10,7 @@
         <description>A widget for making videoconferences using Kurento</description>
         <homepage>https://github.com/wirecloud-fiware/kurento-one2one-widget</homepage>
         <issuetracker>https://github.com/wirecloud-fiware/kurento-one2one-widget/issues</issuetracker>
-        <doc>doc/index.md</doc>
+        <doc>doc/userguide.md</doc>
 	<changelog>doc/changelog.md</changelog>
     </details>
     <requirements>
