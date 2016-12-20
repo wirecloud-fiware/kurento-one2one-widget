@@ -49,6 +49,7 @@ grunt
 
 If everything goes well, you will find a wgt file in the `dist` folder.
 
+
 ## Documentation
 
 Documentation about how to use this widget is available on the
@@ -56,6 +57,8 @@ Documentation about how to use this widget is available on the
 about how to use widgets on the
 [WireCloud's User Guide](https://wirecloud.readthedocs.io/en/stable/user_guide/)
 available on Read the Docs.
+
+
 Copyright and License
 ---------------------
 
