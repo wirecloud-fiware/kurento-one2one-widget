@@ -46,7 +46,7 @@ The target user can be specified using a text field (only available when the wid
 
 Or provided by other widgets/operators throught the `User id` input endpoints.
 
-#### Calling from other widgets/operatos
+#### Calling from other widgets/operators
 
 Other widgets/operators can start a call by sending an event to the `Call user` endpoint. The user is specified in the event without requiring end-user to select the user to call.
 
